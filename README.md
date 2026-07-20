@@ -1,11 +1,27 @@
-# podman-mcp
+# 🦭 Podman MCP (podman-mcp)
 
-[![Python](https://img.shields.io/badge/python-3.12+-blue.svg)](https://python.org)
-[![FastMCP](https://img.shields.io/badge/FastMCP-3.5-purple.svg)](https://github.com/jlowin/fastmcp)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![PRs](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/sandraschi/podman-mcp/pulls)
+[![Python](https://img.shields.io/badge/python-3.12+-blue.svg?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+[![FastMCP](https://img.shields.io/badge/FastMCP-3.5-purple.svg?style=for-the-badge&logo=fastapi&logoColor=white)](https://github.com/jlowin/fastmcp)
+[![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20WSL2-cyan.svg?style=for-the-badge&logo=windows&logoColor=white)](#requirements)
+[![UI](https://img.shields.io/badge/UI-React%2019%20%2B%20Vite-blueviolet.svg?style=for-the-badge&logo=react&logoColor=white)](#webapp)
+[![License](https://img.shields.io/badge/license-MIT-green.svg?style=for-the-badge)](LICENSE)
 
-FastMCP 3.5 control plane for Podman — containers, images, volumes, networks, Compose, daemon recovery, **AI chat**, **backup/restore**, **image comparison**, **container analysis**, and a React web dashboard.
+> A premium, daemon-less FastMCP 3.5 control plane for **Podman** container engines on Windows and WSL2 — featuring container management, native Pod orchestration, compose stacks, system analytics, and a glassmorphism React web dashboard.
+
+---
+
+### ❓ What is Podman?
+
+**Podman (Pod Manager)** is a lightweight, open-source container engine designed as a modern alternative to Docker. 
+
+While Docker relies on a monolithic background service (the Docker Daemon, `dockerd`) which can occasionally lock up or consume high idle resources on Windows, Podman operates on a **daemon-less** and **rootless-first** architecture:
+
+*   **Zero Idle Overhead**: Since there is no background daemon running 24/7, Podman consumes virtually no memory or CPU when your containers are stopped.
+*   **Fork-Exec Process Model**: Every container runs as a direct child process of your shell session, avoiding single-point-of-failure engine crashes.
+*   **Native Kubernetes Pods**: Podman allows you to group multiple containers into a single shared namespace (a **Pod**), making local development match Kubernetes production environments.
+*   **Docker-CLI Compatible**: Podman matches the Docker CLI commands. You can simply alias `docker` to `podman` and keep using your existing scripts.
+
+---
 
 ## Install
 
@@ -24,7 +40,7 @@ uv sync
 .\start.ps1
 ```
 
-Opens `http://127.0.0.1:10806` (API bridge on `10807`).
+Opens the web dashboard on `http://127.0.0.1:10806` (API bridge runs on `10807`).
 
 ## What You Can Do
 
