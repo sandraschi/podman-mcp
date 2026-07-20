@@ -1,0 +1,17 @@
+{
+    "product_name": "Podman MCP",
+    "install_dir": "%LOCALAPPDATA%\\Podman MCP",
+    "operator_exe": "podman-mcp-native.exe",
+    "backend_process_names": ["podman-mcp-native", "podman-mcp-native-backend"],
+    "backend_port": 10807,
+    "health_path": "/api/health",
+    "diagnostics_path": "/api/v1/diagnostics",
+    "feature_smoke_path": "/api/v1/diagnostics",
+    "window_title_re": "Podman MCP",
+    "nsis_glob": "native/target/release/bundle/nsis/Podman MCP_*_x64-setup.exe",
+    "uninstall_registry_filter": "*Podman MCP*",
+    "sidebar_click_x": 120,
+    "sidebar_first_y": 130,
+    "sidebar_step_y": 45,
+    "nav_routes": [["Overview", "Podman Dashboard"], ["Containers", "Containers"], ["Images", "Images"], ["Tools", "Tools"]]
+}

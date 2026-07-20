@@ -1,0 +1,27 @@
+{
+  "$schema": "https://glama.ai/mcp/schemas/server.json",
+  "maintainers": ["sandraschi"],
+  "name": "podman-mcp",
+  "description": "FastMCP 3.4 Podman control plane with sampling, prefab UI, agentic workflows, web dashboard, and Tauri native installer.",
+  "type": "mcp_server",
+  "status": "beta",
+  "framework": "FastMCP 3.4",
+  "tools": 40,
+  "transport": ["stdio", "http"],
+  "keywords": [
+    "podman",
+    "containers",
+    "devops",
+    "mcp-server",
+    "fastmcp",
+    "prefab-ui",
+    "sampling"
+  ],
+  "features": {
+    "container_management": { "enabled": true },
+    "podman_desktop": { "enabled": true },
+    "prefab_ui": { "enabled": true },
+    "sampling": { "enabled": true },
+    "web_dashboard": { "enabled": true, "ports": [10806, 10807] }
+  }
+}

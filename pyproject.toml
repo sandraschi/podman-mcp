@@ -1,0 +1,78 @@
+[build-system]
+requires = ["hatchling", "uv-dynamic-versioning>=0.7.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "schip-mcp-podman"
+version = "3.5.0"
+description = "FastMCP 3.5 server for comprehensive Podman operations"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [
+    { name = "Sandra Schipal", email = "sandra@schipal.at" }
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.12",
+]
+
+dependencies = [
+    "fastmcp>=3.4.4,<4",
+    "prefab-ui>=0.14.0",
+    "pydantic>=2.0.0,<3.0.0",
+    "python-dotenv>=0.19.0",
+    "anyio>=3.6.0,<5.0.0",
+    "structlog>=23.1.0,<25.0.0",
+    "fastapi>=0.68.0,<1.0.0",
+    "uvicorn>=0.15.0,<1.0.0",
+    "httpx>=0.23.0,<1.0.0",
+    "requests>=2.20.0,<3.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    "pytest-asyncio>=0.25",
+    "pytest-cov>=6",
+    "ruff>=0.15.2",
+    "pyinstaller>=6",
+]
+
+[project.urls]
+Homepage = "https://github.com/sandraschi/podmanmcp"
+Documentation = "https://github.com/sandraschi/podmanmcp#readme"
+Repository = "https://github.com/sandraschi/podmanmcp"
+
+[project.scripts]
+podman-mcp = "podmanmcp.server:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/podmanmcp", "src/podman_mcp", "src/customization"]
+
+[tool.uv-dynamic-versioning]
+enable = true
+vcs = "git"
+style = "pep440"
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+exclude = ["scripts", "tests", "_llm_test_scripts", "monitoring", "examples", "mcpb", "docs", "build"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "S", "UP", "RUF"]
+ignore = ["S101", "B008"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[dependency-groups]
+dev = [
+    "pillow>=12.2.0",
+    "pytesseract>=0.3.13",
+    "pywinauto>=0.6.9",
+]

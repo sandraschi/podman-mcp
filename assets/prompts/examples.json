@@ -1,0 +1,934 @@
+{
+  "examples": [
+    {
+      "id": "container_001",
+      "description": "Container operation example 1",
+      "prompt": "List and manage Podman containers example 1",
+      "tool": "podman_container_list",
+      "params": {
+        "operation": "list",
+        "all": true
+      }
+    },
+    {
+      "id": "container_002",
+      "description": "Container operation example 2",
+      "prompt": "List and manage Podman containers example 2",
+      "tool": "podman_container_list",
+      "params": {
+        "operation": "list",
+        "all": true
+      }
+    },
+    {
+      "id": "container_003",
+      "description": "Container operation example 3",
+      "prompt": "List and manage Podman containers example 3",
+      "tool": "podman_container_list",
+      "params": {
+        "operation": "list",
+        "all": true
+      }
+    },
+    {
+      "id": "container_004",
+      "description": "Container operation example 4",
+      "prompt": "List and manage Podman containers example 4",
+      "tool": "podman_container_list",
+      "params": {
+        "operation": "list",
+        "all": true
+      }
+    },
+    {
+      "id": "container_005",
+      "description": "Container operation example 5",
+      "prompt": "List and manage Podman containers example 5",
+      "tool": "podman_container_list",
+      "params": {
+        "operation": "list",
+        "all": true
+      }
+    },
+    {
+      "id": "container_006",
+      "description": "Container operation example 6",
+      "prompt": "List and manage Podman containers example 6",
+      "tool": "podman_container_list",
+      "params": {
+        "operation": "list",
+        "all": true
+      }
+    },
+    {
+      "id": "container_007",
+      "description": "Container operation example 7",
+      "prompt": "List and manage Podman containers example 7",
+      "tool": "podman_container_list",
+      "params": {
+        "operation": "list",
+        "all": true
+      }
+    },
+    {
+      "id": "container_008",
+      "description": "Container operation example 8",
+      "prompt": "List and manage Podman containers example 8",
+      "tool": "podman_container_list",
+      "params": {
+        "operation": "list",
+        "all": true
+      }
+    },
+    {
+      "id": "container_009",
+      "description": "Container operation example 9",
+      "prompt": "List and manage Podman containers example 9",
+      "tool": "podman_container_list",
+      "params": {
+        "operation": "list",
+        "all": true
+      }
+    },
+    {
+      "id": "container_010",
+      "description": "Container operation example 10",
+      "prompt": "List and manage Podman containers example 10",
+      "tool": "podman_container_list",
+      "params": {
+        "operation": "list",
+        "all": true
+      }
+    },
+    {
+      "id": "container_011",
+      "description": "Container operation example 11",
+      "prompt": "List and manage Podman containers example 11",
+      "tool": "podman_container_list",
+      "params": {
+        "operation": "list",
+        "all": true
+      }
+    },
+    {
+      "id": "container_012",
+      "description": "Container operation example 12",
+      "prompt": "List and manage Podman containers example 12",
+      "tool": "podman_container_list",
+      "params": {
+        "operation": "list",
+        "all": true
+      }
+    },
+    {
+      "id": "container_013",
+      "description": "Container operation example 13",
+      "prompt": "List and manage Podman containers example 13",
+      "tool": "podman_container_list",
+      "params": {
+        "operation": "list",
+        "all": true
+      }
+    },
+    {
+      "id": "container_014",
+      "description": "Container operation example 14",
+      "prompt": "List and manage Podman containers example 14",
+      "tool": "podman_container_list",
+      "params": {
+        "operation": "list",
+        "all": true
+      }
+    },
+    {
+      "id": "container_015",
+      "description": "Container operation example 15",
+      "prompt": "List and manage Podman containers example 15",
+      "tool": "podman_container_list",
+      "params": {
+        "operation": "list",
+        "all": true
+      }
+    },
+    {
+      "id": "container_016",
+      "description": "Container operation example 16",
+      "prompt": "List and manage Podman containers example 16",
+      "tool": "podman_container_list",
+      "params": {
+        "operation": "list",
+        "all": true
+      }
+    },
+    {
+      "id": "container_017",
+      "description": "Container operation example 17",
+      "prompt": "List and manage Podman containers example 17",
+      "tool": "podman_container_list",
+      "params": {
+        "operation": "list",
+        "all": true
+      }
+    },
+    {
+      "id": "container_018",
+      "description": "Container operation example 18",
+      "prompt": "List and manage Podman containers example 18",
+      "tool": "podman_container_list",
+      "params": {
+        "operation": "list",
+        "all": true
+      }
+    },
+    {
+      "id": "container_019",
+      "description": "Container operation example 19",
+      "prompt": "List and manage Podman containers example 19",
+      "tool": "podman_container_list",
+      "params": {
+        "operation": "list",
+        "all": true
+      }
+    },
+    {
+      "id": "container_020",
+      "description": "Container operation example 20",
+      "prompt": "List and manage Podman containers example 20",
+      "tool": "podman_container_list",
+      "params": {
+        "operation": "list",
+        "all": true
+      }
+    },
+    {
+      "id": "container_021",
+      "description": "Container operation example 21",
+      "prompt": "List and manage Podman containers example 21",
+      "tool": "podman_container_list",
+      "params": {
+        "operation": "list",
+        "all": true
+      }
+    },
+    {
+      "id": "container_022",
+      "description": "Container operation example 22",
+      "prompt": "List and manage Podman containers example 22",
+      "tool": "podman_container_list",
+      "params": {
+        "operation": "list",
+        "all": true
+      }
+    },
+    {
+      "id": "container_023",
+      "description": "Container operation example 23",
+      "prompt": "List and manage Podman containers example 23",
+      "tool": "podman_container_list",
+      "params": {
+        "operation": "list",
+        "all": true
+      }
+    },
+    {
+      "id": "container_024",
+      "description": "Container operation example 24",
+      "prompt": "List and manage Podman containers example 24",
+      "tool": "podman_container_list",
+      "params": {
+        "operation": "list",
+        "all": true
+      }
+    },
+    {
+      "id": "container_025",
+      "description": "Container operation example 25",
+      "prompt": "List and manage Podman containers example 25",
+      "tool": "podman_container_list",
+      "params": {
+        "operation": "list",
+        "all": true
+      }
+    },
+    {
+      "id": "container_026",
+      "description": "Container operation example 26",
+      "prompt": "List and manage Podman containers example 26",
+      "tool": "podman_container_list",
+      "params": {
+        "operation": "list",
+        "all": true
+      }
+    },
+    {
+      "id": "container_027",
+      "description": "Container operation example 27",
+      "prompt": "List and manage Podman containers example 27",
+      "tool": "podman_container_list",
+      "params": {
+        "operation": "list",
+        "all": true
+      }
+    },
+    {
+      "id": "container_028",
+      "description": "Container operation example 28",
+      "prompt": "List and manage Podman containers example 28",
+      "tool": "podman_container_list",
+      "params": {
+        "operation": "list",
+        "all": true
+      }
+    },
+    {
+      "id": "container_029",
+      "description": "Container operation example 29",
+      "prompt": "List and manage Podman containers example 29",
+      "tool": "podman_container_list",
+      "params": {
+        "operation": "list",
+        "all": true
+      }
+    },
+    {
+      "id": "container_030",
+      "description": "Container operation example 30",
+      "prompt": "List and manage Podman containers example 30",
+      "tool": "podman_container_list",
+      "params": {
+        "operation": "list",
+        "all": true
+      }
+    },
+    {
+      "id": "image_001",
+      "description": "Image operation example 1",
+      "prompt": "Pull and manage Podman images example 1",
+      "tool": "podman_image_pull",
+      "params": {
+        "image": "nginx:latest"
+      }
+    },
+    {
+      "id": "image_002",
+      "description": "Image operation example 2",
+      "prompt": "Pull and manage Podman images example 2",
+      "tool": "podman_image_pull",
+      "params": {
+        "image": "nginx:latest"
+      }
+    },
+    {
+      "id": "image_003",
+      "description": "Image operation example 3",
+      "prompt": "Pull and manage Podman images example 3",
+      "tool": "podman_image_pull",
+      "params": {
+        "image": "nginx:latest"
+      }
+    },
+    {
+      "id": "image_004",
+      "description": "Image operation example 4",
+      "prompt": "Pull and manage Podman images example 4",
+      "tool": "podman_image_pull",
+      "params": {
+        "image": "nginx:latest"
+      }
+    },
+    {
+      "id": "image_005",
+      "description": "Image operation example 5",
+      "prompt": "Pull and manage Podman images example 5",
+      "tool": "podman_image_pull",
+      "params": {
+        "image": "nginx:latest"
+      }
+    },
+    {
+      "id": "image_006",
+      "description": "Image operation example 6",
+      "prompt": "Pull and manage Podman images example 6",
+      "tool": "podman_image_pull",
+      "params": {
+        "image": "nginx:latest"
+      }
+    },
+    {
+      "id": "image_007",
+      "description": "Image operation example 7",
+      "prompt": "Pull and manage Podman images example 7",
+      "tool": "podman_image_pull",
+      "params": {
+        "image": "nginx:latest"
+      }
+    },
+    {
+      "id": "image_008",
+      "description": "Image operation example 8",
+      "prompt": "Pull and manage Podman images example 8",
+      "tool": "podman_image_pull",
+      "params": {
+        "image": "nginx:latest"
+      }
+    },
+    {
+      "id": "image_009",
+      "description": "Image operation example 9",
+      "prompt": "Pull and manage Podman images example 9",
+      "tool": "podman_image_pull",
+      "params": {
+        "image": "nginx:latest"
+      }
+    },
+    {
+      "id": "image_010",
+      "description": "Image operation example 10",
+      "prompt": "Pull and manage Podman images example 10",
+      "tool": "podman_image_pull",
+      "params": {
+        "image": "nginx:latest"
+      }
+    },
+    {
+      "id": "image_011",
+      "description": "Image operation example 11",
+      "prompt": "Pull and manage Podman images example 11",
+      "tool": "podman_image_pull",
+      "params": {
+        "image": "nginx:latest"
+      }
+    },
+    {
+      "id": "image_012",
+      "description": "Image operation example 12",
+      "prompt": "Pull and manage Podman images example 12",
+      "tool": "podman_image_pull",
+      "params": {
+        "image": "nginx:latest"
+      }
+    },
+    {
+      "id": "image_013",
+      "description": "Image operation example 13",
+      "prompt": "Pull and manage Podman images example 13",
+      "tool": "podman_image_pull",
+      "params": {
+        "image": "nginx:latest"
+      }
+    },
+    {
+      "id": "image_014",
+      "description": "Image operation example 14",
+      "prompt": "Pull and manage Podman images example 14",
+      "tool": "podman_image_pull",
+      "params": {
+        "image": "nginx:latest"
+      }
+    },
+    {
+      "id": "image_015",
+      "description": "Image operation example 15",
+      "prompt": "Pull and manage Podman images example 15",
+      "tool": "podman_image_pull",
+      "params": {
+        "image": "nginx:latest"
+      }
+    },
+    {
+      "id": "image_016",
+      "description": "Image operation example 16",
+      "prompt": "Pull and manage Podman images example 16",
+      "tool": "podman_image_pull",
+      "params": {
+        "image": "nginx:latest"
+      }
+    },
+    {
+      "id": "image_017",
+      "description": "Image operation example 17",
+      "prompt": "Pull and manage Podman images example 17",
+      "tool": "podman_image_pull",
+      "params": {
+        "image": "nginx:latest"
+      }
+    },
+    {
+      "id": "image_018",
+      "description": "Image operation example 18",
+      "prompt": "Pull and manage Podman images example 18",
+      "tool": "podman_image_pull",
+      "params": {
+        "image": "nginx:latest"
+      }
+    },
+    {
+      "id": "image_019",
+      "description": "Image operation example 19",
+      "prompt": "Pull and manage Podman images example 19",
+      "tool": "podman_image_pull",
+      "params": {
+        "image": "nginx:latest"
+      }
+    },
+    {
+      "id": "image_020",
+      "description": "Image operation example 20",
+      "prompt": "Pull and manage Podman images example 20",
+      "tool": "podman_image_pull",
+      "params": {
+        "image": "nginx:latest"
+      }
+    },
+    {
+      "id": "network_001",
+      "description": "Network operation example 1",
+      "prompt": "Create and manage Podman networks example 1",
+      "tool": "podman_network_create",
+      "params": {
+        "name": "test-net-1",
+        "driver": "bridge"
+      }
+    },
+    {
+      "id": "network_002",
+      "description": "Network operation example 2",
+      "prompt": "Create and manage Podman networks example 2",
+      "tool": "podman_network_create",
+      "params": {
+        "name": "test-net-2",
+        "driver": "bridge"
+      }
+    },
+    {
+      "id": "network_003",
+      "description": "Network operation example 3",
+      "prompt": "Create and manage Podman networks example 3",
+      "tool": "podman_network_create",
+      "params": {
+        "name": "test-net-3",
+        "driver": "bridge"
+      }
+    },
+    {
+      "id": "network_004",
+      "description": "Network operation example 4",
+      "prompt": "Create and manage Podman networks example 4",
+      "tool": "podman_network_create",
+      "params": {
+        "name": "test-net-4",
+        "driver": "bridge"
+      }
+    },
+    {
+      "id": "network_005",
+      "description": "Network operation example 5",
+      "prompt": "Create and manage Podman networks example 5",
+      "tool": "podman_network_create",
+      "params": {
+        "name": "test-net-5",
+        "driver": "bridge"
+      }
+    },
+    {
+      "id": "network_006",
+      "description": "Network operation example 6",
+      "prompt": "Create and manage Podman networks example 6",
+      "tool": "podman_network_create",
+      "params": {
+        "name": "test-net-6",
+        "driver": "bridge"
+      }
+    },
+    {
+      "id": "network_007",
+      "description": "Network operation example 7",
+      "prompt": "Create and manage Podman networks example 7",
+      "tool": "podman_network_create",
+      "params": {
+        "name": "test-net-7",
+        "driver": "bridge"
+      }
+    },
+    {
+      "id": "network_008",
+      "description": "Network operation example 8",
+      "prompt": "Create and manage Podman networks example 8",
+      "tool": "podman_network_create",
+      "params": {
+        "name": "test-net-8",
+        "driver": "bridge"
+      }
+    },
+    {
+      "id": "network_009",
+      "description": "Network operation example 9",
+      "prompt": "Create and manage Podman networks example 9",
+      "tool": "podman_network_create",
+      "params": {
+        "name": "test-net-9",
+        "driver": "bridge"
+      }
+    },
+    {
+      "id": "network_010",
+      "description": "Network operation example 10",
+      "prompt": "Create and manage Podman networks example 10",
+      "tool": "podman_network_create",
+      "params": {
+        "name": "test-net-10",
+        "driver": "bridge"
+      }
+    },
+    {
+      "id": "network_011",
+      "description": "Network operation example 11",
+      "prompt": "Create and manage Podman networks example 11",
+      "tool": "podman_network_create",
+      "params": {
+        "name": "test-net-11",
+        "driver": "bridge"
+      }
+    },
+    {
+      "id": "network_012",
+      "description": "Network operation example 12",
+      "prompt": "Create and manage Podman networks example 12",
+      "tool": "podman_network_create",
+      "params": {
+        "name": "test-net-12",
+        "driver": "bridge"
+      }
+    },
+    {
+      "id": "network_013",
+      "description": "Network operation example 13",
+      "prompt": "Create and manage Podman networks example 13",
+      "tool": "podman_network_create",
+      "params": {
+        "name": "test-net-13",
+        "driver": "bridge"
+      }
+    },
+    {
+      "id": "network_014",
+      "description": "Network operation example 14",
+      "prompt": "Create and manage Podman networks example 14",
+      "tool": "podman_network_create",
+      "params": {
+        "name": "test-net-14",
+        "driver": "bridge"
+      }
+    },
+    {
+      "id": "network_015",
+      "description": "Network operation example 15",
+      "prompt": "Create and manage Podman networks example 15",
+      "tool": "podman_network_create",
+      "params": {
+        "name": "test-net-15",
+        "driver": "bridge"
+      }
+    },
+    {
+      "id": "volume_001",
+      "description": "Volume operation example 1",
+      "prompt": "Create and manage Podman volumes example 1",
+      "tool": "podman_volume_create",
+      "params": {
+        "name": "test-vol-1"
+      }
+    },
+    {
+      "id": "volume_002",
+      "description": "Volume operation example 2",
+      "prompt": "Create and manage Podman volumes example 2",
+      "tool": "podman_volume_create",
+      "params": {
+        "name": "test-vol-2"
+      }
+    },
+    {
+      "id": "volume_003",
+      "description": "Volume operation example 3",
+      "prompt": "Create and manage Podman volumes example 3",
+      "tool": "podman_volume_create",
+      "params": {
+        "name": "test-vol-3"
+      }
+    },
+    {
+      "id": "volume_004",
+      "description": "Volume operation example 4",
+      "prompt": "Create and manage Podman volumes example 4",
+      "tool": "podman_volume_create",
+      "params": {
+        "name": "test-vol-4"
+      }
+    },
+    {
+      "id": "volume_005",
+      "description": "Volume operation example 5",
+      "prompt": "Create and manage Podman volumes example 5",
+      "tool": "podman_volume_create",
+      "params": {
+        "name": "test-vol-5"
+      }
+    },
+    {
+      "id": "volume_006",
+      "description": "Volume operation example 6",
+      "prompt": "Create and manage Podman volumes example 6",
+      "tool": "podman_volume_create",
+      "params": {
+        "name": "test-vol-6"
+      }
+    },
+    {
+      "id": "volume_007",
+      "description": "Volume operation example 7",
+      "prompt": "Create and manage Podman volumes example 7",
+      "tool": "podman_volume_create",
+      "params": {
+        "name": "test-vol-7"
+      }
+    },
+    {
+      "id": "volume_008",
+      "description": "Volume operation example 8",
+      "prompt": "Create and manage Podman volumes example 8",
+      "tool": "podman_volume_create",
+      "params": {
+        "name": "test-vol-8"
+      }
+    },
+    {
+      "id": "volume_009",
+      "description": "Volume operation example 9",
+      "prompt": "Create and manage Podman volumes example 9",
+      "tool": "podman_volume_create",
+      "params": {
+        "name": "test-vol-9"
+      }
+    },
+    {
+      "id": "volume_010",
+      "description": "Volume operation example 10",
+      "prompt": "Create and manage Podman volumes example 10",
+      "tool": "podman_volume_create",
+      "params": {
+        "name": "test-vol-10"
+      }
+    },
+    {
+      "id": "volume_011",
+      "description": "Volume operation example 11",
+      "prompt": "Create and manage Podman volumes example 11",
+      "tool": "podman_volume_create",
+      "params": {
+        "name": "test-vol-11"
+      }
+    },
+    {
+      "id": "volume_012",
+      "description": "Volume operation example 12",
+      "prompt": "Create and manage Podman volumes example 12",
+      "tool": "podman_volume_create",
+      "params": {
+        "name": "test-vol-12"
+      }
+    },
+    {
+      "id": "compose_001",
+      "description": "Compose operation example 1",
+      "prompt": "Manage Podman Compose stacks example 1",
+      "tool": "podman_compose_up",
+      "params": {
+        "project_dir": "/path/to/project1"
+      }
+    },
+    {
+      "id": "compose_002",
+      "description": "Compose operation example 2",
+      "prompt": "Manage Podman Compose stacks example 2",
+      "tool": "podman_compose_up",
+      "params": {
+        "project_dir": "/path/to/project2"
+      }
+    },
+    {
+      "id": "compose_003",
+      "description": "Compose operation example 3",
+      "prompt": "Manage Podman Compose stacks example 3",
+      "tool": "podman_compose_up",
+      "params": {
+        "project_dir": "/path/to/project3"
+      }
+    },
+    {
+      "id": "compose_004",
+      "description": "Compose operation example 4",
+      "prompt": "Manage Podman Compose stacks example 4",
+      "tool": "podman_compose_up",
+      "params": {
+        "project_dir": "/path/to/project4"
+      }
+    },
+    {
+      "id": "compose_005",
+      "description": "Compose operation example 5",
+      "prompt": "Manage Podman Compose stacks example 5",
+      "tool": "podman_compose_up",
+      "params": {
+        "project_dir": "/path/to/project5"
+      }
+    },
+    {
+      "id": "compose_006",
+      "description": "Compose operation example 6",
+      "prompt": "Manage Podman Compose stacks example 6",
+      "tool": "podman_compose_up",
+      "params": {
+        "project_dir": "/path/to/project6"
+      }
+    },
+    {
+      "id": "compose_007",
+      "description": "Compose operation example 7",
+      "prompt": "Manage Podman Compose stacks example 7",
+      "tool": "podman_compose_up",
+      "params": {
+        "project_dir": "/path/to/project7"
+      }
+    },
+    {
+      "id": "compose_008",
+      "description": "Compose operation example 8",
+      "prompt": "Manage Podman Compose stacks example 8",
+      "tool": "podman_compose_up",
+      "params": {
+        "project_dir": "/path/to/project8"
+      }
+    },
+    {
+      "id": "compose_009",
+      "description": "Compose operation example 9",
+      "prompt": "Manage Podman Compose stacks example 9",
+      "tool": "podman_compose_up",
+      "params": {
+        "project_dir": "/path/to/project9"
+      }
+    },
+    {
+      "id": "compose_010",
+      "description": "Compose operation example 10",
+      "prompt": "Manage Podman Compose stacks example 10",
+      "tool": "podman_compose_up",
+      "params": {
+        "project_dir": "/path/to/project10"
+      }
+    },
+    {
+      "id": "system_001",
+      "description": "System operation example 1",
+      "prompt": "Check Podman system info example 1",
+      "tool": "podman_system_info",
+      "params": {}
+    },
+    {
+      "id": "system_002",
+      "description": "System operation example 2",
+      "prompt": "Check Podman system info example 2",
+      "tool": "podman_system_info",
+      "params": {}
+    },
+    {
+      "id": "system_003",
+      "description": "System operation example 3",
+      "prompt": "Check Podman system info example 3",
+      "tool": "podman_system_info",
+      "params": {}
+    },
+    {
+      "id": "system_004",
+      "description": "System operation example 4",
+      "prompt": "Check Podman system info example 4",
+      "tool": "podman_system_info",
+      "params": {}
+    },
+    {
+      "id": "system_005",
+      "description": "System operation example 5",
+      "prompt": "Check Podman system info example 5",
+      "tool": "podman_system_info",
+      "params": {}
+    },
+    {
+      "id": "system_006",
+      "description": "System operation example 6",
+      "prompt": "Check Podman system info example 6",
+      "tool": "podman_system_info",
+      "params": {}
+    },
+    {
+      "id": "system_007",
+      "description": "System operation example 7",
+      "prompt": "Check Podman system info example 7",
+      "tool": "podman_system_info",
+      "params": {}
+    },
+    {
+      "id": "system_008",
+      "description": "System operation example 8",
+      "prompt": "Check Podman system info example 8",
+      "tool": "podman_system_info",
+      "params": {}
+    },
+    {
+      "id": "workflow_001",
+      "description": "Workflow operation example 1",
+      "prompt": "Run Podman agentic workflow example 1",
+      "tool": "podman_workflow_run",
+      "params": {
+        "name": "workflow-1"
+      }
+    },
+    {
+      "id": "workflow_002",
+      "description": "Workflow operation example 2",
+      "prompt": "Run Podman agentic workflow example 2",
+      "tool": "podman_workflow_run",
+      "params": {
+        "name": "workflow-2"
+      }
+    },
+    {
+      "id": "workflow_003",
+      "description": "Workflow operation example 3",
+      "prompt": "Run Podman agentic workflow example 3",
+      "tool": "podman_workflow_run",
+      "params": {
+        "name": "workflow-3"
+      }
+    },
+    {
+      "id": "workflow_004",
+      "description": "Workflow operation example 4",
+      "prompt": "Run Podman agentic workflow example 4",
+      "tool": "podman_workflow_run",
+      "params": {
+        "name": "workflow-4"
+      }
+    },
+    {
+      "id": "workflow_005",
+      "description": "Workflow operation example 5",
+      "prompt": "Run Podman agentic workflow example 5",
+      "tool": "podman_workflow_run",
+      "params": {
+        "name": "workflow-5"
+      }
+    }
+  ],
+  "total": 100
+}

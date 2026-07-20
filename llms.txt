@@ -1,0 +1,238 @@
+# llms.txt for podman-mcp
+# Last Updated: 2026-06-02
+# FastMCP 3.4 — sampling, prefab UI, agentic workflows, web_sota 10806/10807, MCPB root, Tauri
+
+## Project Overview
+
+Podman MCP Server is a FastMCP 3.4 server providing:
+- Native MCP tools for Podman CLI management (status, recovery, restart, update)
+- Container lifecycle management (create, start, stop, restart, remove)
+- Image handling (pull, list, tag, remove)
+- Network operations (create, inspect, connect, disconnect)
+- Volume management (create, remove, prune)
+- System monitoring (disk usage, info, version)
+- Podman Machine daemon health checks with hang detection and auto-recovery
+
+## Key Features
+
+### Fleet 3.4 surface
+- Prefab cards: `podman_containers_card`, `podman_desktop_status_card`, `podman_system_info_card`
+- MCP prompts + `resource://podman-mcp/skills`
+- Web: `/logs`, settings LLM glom (Ollama/LM Studio)
+- MCPB: root `manifest.json`; pack with `just mcpb-pack`
+- Tauri: `just build-native`
+
+### Podman Machine Management
+- `podman_desktop_status(autofix: bool)` - Check daemon health with hang detection, list images/containers
+- `podman_daemon_recover()` - Emergency recovery from hanging daemon
+- `podman_daemon_restart()` - Graceful daemon restart
+- `podman_desktop_update(full_wipe: bool)` - Fix update elevation errors
+
+### Core Podman Operations
+- Container management (full lifecycle)
+- Image operations (pull, list, tag, remove, commit, export, import)
+- Network management (create, inspect, list, remove, connect, disconnect)
+- Volume management (create, list, remove, prune)
+- System monitoring (info, disk usage, version)
+
+### Web Application (web_sota)
+- FastAPI bridge on port 10807 (`/api/*`, `/api/logs`, `/api/llm/providers`)
+- React/Vite on port 10806 (dev); Tauri bundles UI + sidecar
+- Fleet pages: dashboard, containers, images, tools, chat, settings (LLM glom-on), event logs, help
+- Prefab MCP tools: podman_containers_card, podman_desktop_status_card, podman_system_info_card
+- MCP prompts: podman_deploy_stack, podman_daemon_health_check
+- Resources: resource://podman-mcp/skills, resource://podman-mcp/capabilities
+
+## Directory Structure
+
+```
+podman-mcp/
+├── src/podmanmcp/
+│   ├── api/app.py                 # FastAPI endpoints
+│   ├── core/                      # Core Podman operations
+│   ├── tools/
+│   │   ├── desktop/               # Podman Machine tools (NEW)
+│   │   │   ├── desktop_status.py
+│   │   │   ├── desktop_recovery.py
+│   │   │   └── desktop_update.py
+│   │   ├── containers/
+│   │   ├── images/
+│   │   ├── networks/
+│   │   ├── volumes/
+│   │   └── system/
+│   └── server.py                  # MCP + FastAPI server
+├── web_sota/                      # React webapp
+│   ├── src/pages/
+│   │   ├── dashboard.tsx          # System overview
+│   │   ├── containers.tsx         # Container browser
+│   │   ├── tools.tsx              # MCP tools catalog
+│   │   └── help.tsx               # Documentation
+│   └── start.ps1                  # Startup script
+├── tests/                         # Test suite
+├── justfile                       # Task automation
+├── README.md                      # Project documentation
+├── CHANGELOG.md                   # Version history
+└── pyproject.toml                 # Python project config
+```
+
+## Quick Start
+
+### Install & Run
+```bash
+# One-liner via uvx (no installation)
+uvx podman-mcp
+
+# Or install locally via uv
+uv sync
+uv run podman-mcp
+
+# Or use just
+just dev
+```
+
+### Webapp
+```bash
+# Development mode
+cd web_sota
+npm install
+npm run dev
+
+# Production build
+npm run build
+```
+
+### Podman Compose
+```bash
+# Full stack (with monitoring)
+podman compose up -d
+
+# Monitoring only
+just podman-monitoring
+```
+
+## Development Commands
+
+See `justfile` for available commands:
+- `just dev` - Run server
+- `just test` - Run tests
+- `just lint` - Format and lint code
+- `just podman-build` - Build Podman image
+- `just webapp-dev` - Run webapp in dev mode
+
+## API Endpoints
+
+- `GET /health` - Health check
+- `GET /api/dashboard` - System overview (containers, images, disk, memory)
+- `GET /api/containers` - List all containers
+- `GET /api/tools` - List available MCP tools
+
+## MCP Tools
+
+### Podman Machine Management
+- podman_desktop_status(autofix=bool) - Check daemon health
+- podman_daemon_recover() - Recover hanging daemon
+- podman_daemon_restart() - Restart daemon
+- podman_desktop_update(full_wipe=bool) - Fix elevation errors
+
+### Container Management
+- list_containers() - List all containers
+- start_container(container_id) - Start container
+- stop_container(container_id) - Stop container
+- restart_container(container_id) - Restart container
+- remove_container(container_id) - Remove container
+- get_container_logs(container_id) - View logs
+
+### Image Management
+- list_images() - List images
+- pull_image(repository) - Pull image
+- remove_image(image_id) - Remove image
+
+### Network Management
+- list_networks() - List networks
+- create_network(name) - Create network
+- remove_network(network_id) - Remove network
+
+### Volume Management
+- list_volumes() - List volumes
+- create_volume(name) - Create volume
+- remove_volume(volume_id) - Remove volume
+
+### System Operations
+- get_system_info() - System information
+- get_disk_usage() - Disk usage breakdown
+- prune_system() - System cleanup
+
+## Configuration
+
+### Environment Variables
+- `PODMAN_HOST` - Podman CLI socket (default: unix:///var/run/podman.sock)
+- `LOG_LEVEL` - Logging level (default: INFO)
+- `LOG_FILE` - Log file path (default: logs/podmanmcp.log)
+
+### Podman Machine Settings
+For AI workloads (LLM inference):
+- Memory: 12GB+ (Settings > Resources > Memory)
+- CPUs: 4+ cores (Settings > Resources > CPUs)
+- Swap: 4-8GB
+
+## Testing
+
+```bash
+# Run all tests
+just test
+
+# Run with coverage
+just test-cov
+
+# Type checking
+just type-check
+
+# Linting
+just lint
+```
+
+## Documentation
+
+- `README.md` - Project overview and features
+- `CHANGELOG.md` - Version history
+- `docs/` - Additional documentation
+- `web_sota/src/pages/help.tsx` - In-app help
+
+## Technologies
+
+- **FastMCP**: 3.1.1+ (MCP server framework)
+- **uv**: Fast Python package manager
+- **mcpb**: MCP Bundle packaging format (replaces DXT)
+- **Python**: 3.12+
+- **FastAPI**: Web framework
+- **podman-py**: Podman client
+- **React**: Frontend
+- **Vite**: Build tool
+- **Tailwind CSS**: Styling
+
+## Related Repositories
+
+- **mcp-central-docs**: Central documentation hub
+  - `podman/PODMAN_DAEMON_AI_WORKLOADS.md` - AI workload optimization
+  - `podman/OLLAMA_GEMMA_SETUP.md` - LLM setup guide
+  - `scripts/fix-podman-daemon.ps1` - Daemon maintenance script
+
+- **podman-mcp-sota**: Webapp repository
+  - React frontend on port 10806
+  - Vite build tool
+
+## License
+
+MIT License - See LICENSE file
+
+## Contact & Support
+
+- Issues: GitHub Issues
+- Discussions: GitHub Discussions
+- Docs: https://github.com/sandraschi/podman-mcp
+
+---
+
+**Last Updated**: June 2026
+**Version**: FastMCP 3.1.1+
+**Status**: Production Ready

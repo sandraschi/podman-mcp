@@ -1,0 +1,63 @@
+{
+  "manifest_version": "0.2",
+  "name": "podman-mcp",
+  "version": "3.5.0",
+  "description": "FastMCP 3.5 Podman control plane — containers, Machine health, sampling, prefab UI, agentic workflows, compose config, image compare",
+  "long_description": "FastMCP 3.4 MCP server for Podman containers, pods, images, networks, volumes, compose, Podman Machine recovery, and a React web dashboard (10806/10807).",
+  "author": {
+    "name": "Sandra Schimanovich",
+    "email": "sandra@sandraschi.dev",
+    "url": "https://github.com/sandraschi"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/sandraschi/podman-mcp",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sandraschi/podman-mcp"
+  },
+  "keywords": ["podman", "containers", "mcp", "fastmcp", "devops"],
+  "server": {
+    "type": "python",
+    "entry_point": "src/server.py",
+    "mcp_config": {
+      "command": "python",
+      "args": ["src/server.py"],
+      "env": {
+        "PYTHONPATH": "${PWD}/src",
+        "PYTHONUNBUFFERED": "1"
+      }
+    }
+  },
+  "compatibility": {
+    "platforms": ["win32", "darwin", "linux"]
+  },
+  "tools_generated": true,
+  "prompts_generated": true,
+  "prompts": [
+    {
+      "name": "system",
+      "description": "System prompt — Podman MCP capabilities and safety",
+      "text": "assets/prompts/system.md"
+    },
+    {
+      "name": "user",
+      "description": "User guide — workflows and troubleshooting",
+      "text": "assets/prompts/user.md"
+    },
+    {
+      "name": "examples",
+      "description": "Structured tool-call examples",
+      "text": "assets/prompts/examples.json"
+    },
+    {
+      "name": "podman_deploy_stack",
+      "description": "Deploy a multi-container stack",
+      "text": "Deploy Podman stack '{stack_name}': verify machine health, create networks/volumes, start services, report ports."
+    },
+    {
+      "name": "podman_machine_health_check",
+      "description": "Podman Machine / daemon diagnostics",
+      "text": "Check Podman Machine health with podman_machine_status_card; recover or restart VM only if hung."
+    }
+  ]
+}
