@@ -290,6 +290,7 @@ def setup_webapp(app: FastAPI, mcp_app: FastMCP):
             # Map standard system info block for UI dashboard compatibility
             sys_info = {
                 "podman_version": status_data.get("version", "Unknown"),
+                "rootless": status_data.get("rootless", False),
                 "containers": {
                     "total": len(containers_list),
                     "running": sum(1 for c in containers_list if c.get("state") == "running"),
@@ -532,9 +533,9 @@ def setup_webapp(app: FastAPI, mcp_app: FastMCP):
             cpu = mem = disk = 0
         return {
             "success": True,
-            "backend": {"port": 10807, "status": "running", "uptime": time.time() - _start_time},
+            "backend": {"port": 11113, "status": "running", "uptime": time.time() - _start_time},
             "system": {"cpu_percent": cpu, "memory_percent": mem, "disk_percent": disk},
-            "tools": {"total": 5},
+            "tools": {"total": 9},
             "cua_status": {"tesseract_available": False, "window_found": False},
         }
 

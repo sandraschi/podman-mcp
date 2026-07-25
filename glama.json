@@ -2,26 +2,37 @@
   "$schema": "https://glama.ai/mcp/schemas/server.json",
   "maintainers": ["sandraschi"],
   "name": "podman-mcp",
-  "description": "FastMCP 3.4 Podman control plane with sampling, prefab UI, agentic workflows, web dashboard, and Tauri native installer.",
+  "description": "Daemonless Podman container engine control plane. 9 portmanteau tools (70+ operations): containers, pods, images, compose, backup, Docker-Podman migration, agentic workflows, health analysis, systemd generation. React web dashboard with rootless detection.",
   "type": "mcp_server",
   "status": "beta",
-  "framework": "FastMCP 3.4",
-  "tools": 40,
+  "framework": "FastMCP 3.5",
+  "tools": 9,
+  "operations": 70,
   "transport": ["stdio", "http"],
+  "repository": "https://github.com/sandraschi/podman-mcp",
   "keywords": [
     "podman",
     "containers",
+    "pods",
     "devops",
     "mcp-server",
     "fastmcp",
-    "prefab-ui",
-    "sampling"
+    "docker-migration",
+    "backup",
+    "daemonless",
+    "rootless"
   ],
   "features": {
     "container_management": { "enabled": true },
-    "podman_desktop": { "enabled": true },
+    "pod_management": { "enabled": true, "description": "Kubernetes-style pod orchestration" },
+    "compose": { "enabled": true },
+    "backup_restore": { "enabled": true },
+    "docker_migration": { "enabled": true, "description": "Docker-Podman porting: compose conversion, image migration, compatibility check" },
+    "agentic_workflows": { "enabled": true },
+    "health_analysis": { "enabled": true },
+    "systemd_generation": { "enabled": true },
     "prefab_ui": { "enabled": true },
     "sampling": { "enabled": true },
-    "web_dashboard": { "enabled": true, "ports": [10806, 10807] }
+    "web_dashboard": { "enabled": true, "ports": [11112, 11113] }
   }
 }

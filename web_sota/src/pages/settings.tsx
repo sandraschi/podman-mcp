@@ -117,7 +117,7 @@ export function Settings() {
     setApiStatus("Testing API…");
     try {
       await getHealth();
-      setApiStatus("Backend reachable on port 10807");
+      setApiStatus("Backend reachable on port 11113");
     } catch (err) {
       setApiStatus(err instanceof Error ? err.message : "API test failed");
     }
@@ -245,7 +245,7 @@ export function Settings() {
         </CardHeader>
         <CardContent className="text-sm text-slate-400 space-y-1">
           <p>Podman MCP webapp (SOTA)</p>
-          <p>Frontend: 10806 · Backend: 10807</p>
+          <p>Frontend: 11112 · Backend: 11113</p>
           <p>Event logs: /logs · Fleet glom-on via GET /api/llm/providers</p>
         </CardContent>
       </Card>

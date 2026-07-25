@@ -31,6 +31,7 @@ async def manage_system(
             "machine_start",
             "machine_stop",
             "prune",
+            "generate_systemd",
             "volume_list",
             "volume_create",
             "volume_delete",
@@ -43,8 +44,12 @@ async def manage_system(
     name: Annotated[
         str | None,
         Field(
-            description="The name of the target volume or network. Required for create/delete operations."
+            description="The name of the target volume, network, or container. Required for create/delete operations. Also used as container name for generate_systemd."
         ),
+    ] = None,
+    container_id: Annotated[
+        str | None,
+        Field(description="Target container name or ID for generate_systemd operation."),
     ] = None,
 ) -> dict[str, Any]:
     """
@@ -91,7 +96,17 @@ async def manage_system(
                     machines = json.loads(res["stdout"])
                 except Exception:
                     pass
-            
+
+            # Detect rootless mode via podman info
+            rootless = False
+            info_res = await run_podman_command(["info", "--format", "json"])
+            if info_res["success"] and info_res["stdout"].strip():
+                try:
+                    info_data = json.loads(info_res["stdout"])
+                    rootless = info_data.get("host", {}).get("security", {}).get("rootless", False)
+                except Exception:
+                    pass
+
             # Count local resources
             containers_res = await run_podman_command(["ps", "-a", "--format", "json"])
             images_res = await run_podman_command(["images", "--format", "json"])
@@ -115,6 +130,7 @@ async def manage_system(
                 "version": ctx_status.get("version"),
                 "server_version": ctx_status.get("server_version"),
                 "platform": ctx_status.get("platform"),
+                "rootless": rootless,
                 "machines": machines,
                 "containers_count": containers_count,
                 "images_count": images_count,
@@ -201,6 +217,21 @@ async def manage_system(
                 "success": True,
                 "message": "Pruned unused system storage and processes.",
                 "data": {"stdout": res["stdout"]},
+            }
+
+        elif operation == "generate_systemd":
+            target = container_id or name
+            if not target:
+                return _error_response("Operation 'generate_systemd' requires 'container_id' or 'name' parameter.", "validation_failed")
+            res = await run_podman_command(["generate", "systemd", "--new", target])
+            if not res["success"]:
+                return _error_response(f"Failed to generate systemd unit for '{target}': {res.get('stderr')}", "generate_systemd_failed")
+            unit_text = res["stdout"].strip()
+            return {
+                "success": True,
+                "message": f"Generated systemd unit for container '{target}'. Use 'systemctl --user enable --now container-{target}.service' to activate.",
+                "data": {"container": target, "unit": unit_text},
+                "systemd_unit": unit_text,
             }
 
         # 3. Volume operations

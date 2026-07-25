@@ -5,8 +5,8 @@ param(
     [switch]$NoBrowser,
     [switch]$ReuseIfRunning)
 
-$WebPort = 10806
-$BackendPort = 10807
+$WebPort = 11112
+$BackendPort = 11113
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
 
 $FleetStartPath = Join-Path $ProjectRoot "scripts\FleetStartMode.ps1"

@@ -59,8 +59,8 @@ web_app = FastAPI(title="Podman Management Web Bridge", lifespan=_web_lifespan)
 web_app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://127.0.0.1:10807",
-        "http://localhost:10807",
+        "http://127.0.0.1:11112",
+        "http://localhost:11112",
         "http://tauri.localhost",
         "https://tauri.localhost",
         "tauri://localhost",

@@ -16,6 +16,7 @@ import {
     Package,
     Database,
     Network,
+    ArrowLeftRight,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -34,6 +35,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
         { href: '/volumes', label: 'Volumes', icon: Database },
         { href: '/networks', label: 'Networks', icon: Network },
         { href: '/compose', label: 'Compose', icon: Layers },
+        { href: '/migrate', label: 'Migrate', icon: ArrowLeftRight },
         { href: '/chat', label: 'AI Command', icon: MessageSquare },
         { href: '/tools', label: 'MCP Tools', icon: Wrench },
         { href: '/logs', label: 'Event logs', icon: ScrollText },

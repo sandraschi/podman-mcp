@@ -19,7 +19,7 @@ logger = logging.getLogger("podmanmcp")
 @check_podman_available
 async def manage_compose(
     operation: Annotated[
-        Literal["up", "down", "ps", "logs"],
+        Literal["up", "down", "ps", "logs", "build", "config", "debug"],
         Field(description="The compose management operation to perform"),
     ],
     project_path: Annotated[
@@ -170,6 +170,61 @@ async def manage_compose(
                 "success": True,
                 "message": "Retrieved last 100 log lines from compose stack.",
                 "data": {"logs": res["stdout"] + res["stderr"]},
+            }
+
+        elif operation == "build":
+            cmd_args = compose_args + ["build"]
+            run_args = ["--workdir", abs_path] + cmd_args
+            res = await run_podman_command(run_args, timeout=300.0)
+            if not res["success"]:
+                return _error_response(
+                    f"Compose build failed: {res.get('stderr')}",
+                    "compose_build_failed",
+                )
+            return {
+                "success": True,
+                "message": f"Compose build completed for project: {abs_path}",
+                "data": {"stdout": res["stdout"]},
+            }
+
+        elif operation == "config":
+            cmd_args = compose_args + ["config"]
+            run_args = ["--workdir", abs_path] + cmd_args
+            res = await run_podman_command(run_args)
+            if not res["success"]:
+                return _error_response(
+                    f"Failed to resolve compose config: {res.get('stderr')}",
+                    "compose_config_failed",
+                )
+            return {
+                "success": True,
+                "message": f"Resolved compose configuration for project: {abs_path}",
+                "data": {"config": res["stdout"]},
+            }
+
+        elif operation == "debug":
+            parts = [
+                f"Project path: {abs_path}",
+                f"File: {file_name or 'podman-compose.yml'}",
+                f"Directory exists: {os.path.isdir(abs_path)}",
+            ]
+            compose_file = os.path.join(abs_path, file_name or "podman-compose.yml")
+            if os.path.isfile(compose_file):
+                parts.append(f"Compose file found: {compose_file} ({os.path.getsize(compose_file)} bytes)")
+            else:
+                parts.append(f"Compose file NOT found: {compose_file}")
+            res = await run_podman_command(["version", "--format", "json"])
+            version = "unknown"
+            if res["success"] and res["stdout"].strip():
+                try:
+                    version = json.loads(res["stdout"]).get("Client", {}).get("Version", "unknown")
+                except Exception:
+                    pass
+            parts.append(f"Podman version: {version}")
+            return {
+                "success": True,
+                "message": "Compose debug information gathered.",
+                "data": {"debug_info": "\n".join(parts)},
             }
 
         else:

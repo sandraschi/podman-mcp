@@ -7,7 +7,7 @@ Provides unified transport configuration for STDIO, HTTP Streamable, and legacy 
 Environment Variables:
     MCP_TRANSPORT: Transport mode (stdio, http, sse). Default: stdio
     MCP_HOST: Bind address for HTTP/SSE. Default: 127.0.0.1
-    MCP_PORT: Port for HTTP/SSE. Default: 10807
+    MCP_PORT: Port for HTTP/SSE. Default: 11113
     MCP_PATH: HTTP endpoint path. Default: /mcp
 
 CLI Arguments:
@@ -40,7 +40,7 @@ TransportType = Literal["stdio", "http", "sse"]
 # Environment variable standards
 ENV_TRANSPORT = "MCP_TRANSPORT"  # stdio | http | sse
 ENV_HOST = "MCP_HOST"  # default: 127.0.0.1
-ENV_PORT = "MCP_PORT"  # default: 10807
+ENV_PORT = "MCP_PORT"  # default: 11113
 ENV_PATH = "MCP_PATH"  # default: /mcp (HTTP only)
 
 
@@ -54,7 +54,7 @@ def get_transport_config() -> dict:
     return {
         "transport": os.getenv(ENV_TRANSPORT, "stdio").lower(),
         "host": os.getenv(ENV_HOST, "127.0.0.1"),
-        "port": int(os.getenv(ENV_PORT, "10807")),
+        "port": int(os.getenv(ENV_PORT, "11113")),
         "path": os.getenv(ENV_PATH, "/mcp"),
     }
 
@@ -76,7 +76,7 @@ def create_argument_parser(server_name: str) -> argparse.ArgumentParser:
 Environment Variables:
   {ENV_TRANSPORT}    Transport mode: stdio, http, sse (default: stdio)
   {ENV_HOST}         Bind address (default: 127.0.0.1)
-  {ENV_PORT}         Port number (default: 10807)
+  {ENV_PORT}         Port number (default: 11113)
   {ENV_PATH}         HTTP endpoint path (default: /mcp)
 
 Examples:
@@ -84,10 +84,10 @@ Examples:
   python -m {server_name.replace("-", "_")} --stdio
 
   # HTTP mode (web apps)
-  python -m {server_name.replace("-", "_")} --http --port 10807
+  python -m {server_name.replace("-", "_")} --http --port 11113
 
   # Via environment
-  MCP_TRANSPORT=http MCP_PORT=10807 python -m {server_name.replace("-", "_")}
+  MCP_TRANSPORT=http MCP_PORT=11113 python -m {server_name.replace("-", "_")}
 """,
     )
 
@@ -109,7 +109,7 @@ Examples:
         "--port",
         type=int,
         default=None,
-        help=f"Port to listen on (default: ${ENV_PORT} or 10807)",
+        help=f"Port to listen on (default: ${ENV_PORT} or 11113)",
     )
     parser.add_argument(
         "--path",

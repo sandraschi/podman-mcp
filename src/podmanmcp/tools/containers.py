@@ -18,7 +18,7 @@ logger = logging.getLogger("podmanmcp")
 @check_podman_available
 async def manage_containers(
     operation: Annotated[
-        Literal["list", "inspect", "start", "stop", "restart", "delete", "create", "logs", "stats"],
+        Literal["list", "inspect", "start", "stop", "restart", "delete", "create", "logs", "stats", "exec", "files", "resources"],
         Field(description="The container management operation to perform"),
     ],
     container_id: Annotated[
@@ -55,6 +55,34 @@ async def manage_containers(
         int | None,
         Field(description="Number of log lines to retrieve from the end (defaults to 100) for 'logs' operation."),
     ] = 100,
+    exec_cmd: Annotated[
+        list[str] | None,
+        Field(description="Command and arguments to execute inside the container for 'exec' operation."),
+    ] = None,
+    file_op: Annotated[
+        Literal["list", "read", "write"] | None,
+        Field(description="File operation sub-type for 'files' operation."),
+    ] = None,
+    container_path: Annotated[
+        str | None,
+        Field(description="Path inside the container for 'files' operation."),
+    ] = None,
+    file_content: Annotated[
+        str | None,
+        Field(description="Content to write to the file for 'files' write operation."),
+    ] = None,
+    cpu_limit: Annotated[
+        str | None,
+        Field(description="CPU limit (e.g. '1.5' for 1.5 cores, or '0.5' for half a core) for 'resources' set operation."),
+    ] = None,
+    memory_limit: Annotated[
+        str | None,
+        Field(description="Memory limit (e.g. '512m', '1g') for 'resources' set operation."),
+    ] = None,
+    resource_op: Annotated[
+        Literal["get", "set"] | None,
+        Field(description="Resource operation sub-type: 'get' reads current limits, 'set' applies new limits."),
+    ] = None,
 ) -> dict[str, Any]:
     """
     Perform CRUD and lifecycle management on Podman containers.
@@ -88,7 +116,7 @@ async def manage_containers(
     """
     try:
         # 1. Operation validation checks
-        if operation in ["inspect", "start", "stop", "restart", "delete", "logs", "stats"] and not container_id:
+        if operation in ["inspect", "start", "stop", "restart", "delete", "logs", "stats", "exec", "files", "resources"] and not container_id:
             return _error_response(
                 f"Operation '{operation}' requires a 'container_id' parameter.", "validation_failed"
             )
@@ -246,7 +274,6 @@ async def manage_containers(
             stats_data = {}
             if res["stdout"].strip():
                 try:
-                    # Podman stats formats JSON as array or single line object
                     stats_json = json.loads(res["stdout"])
                     if isinstance(stats_json, list) and stats_json:
                         stats_data = stats_json[0]
@@ -259,6 +286,106 @@ async def manage_containers(
                 "message": f"Retrieved runtime metrics for container '{container_id}'.",
                 "data": stats_data,
             }
+
+        elif operation == "exec":
+            if not exec_cmd:
+                return _error_response("Operation 'exec' requires 'exec_cmd' parameter.", "validation_failed")
+            cmd = exec_cmd
+            res = await run_podman_command(["exec", container_id] + cmd, timeout=60.0)
+            if not res["success"]:
+                return _error_response(f"Exec failed in container '{container_id}': {res.get('stderr')}", "exec_failed")
+            return {
+                "success": True,
+                "message": f"Command executed in container '{container_id}'.",
+                "data": {"stdout": res["stdout"], "stderr": res["stderr"], "exit_code": res["returncode"]},
+                "stdout": res["stdout"],
+                "stderr": res["stderr"],
+            }
+
+        elif operation == "files":
+            if not file_op:
+                return _error_response("Operation 'files' requires 'file_op' parameter (list/read/write).", "validation_failed")
+            if file_op == "list":
+                target = container_path or "/"
+                res = await run_podman_command(["exec", container_id, "ls", "-la", target])
+                if not res["success"]:
+                    return _error_response(f"Failed to list files in container '{container_id}': {res.get('stderr')}", "files_list_failed")
+                return {
+                    "success": True,
+                    "message": f"Directory listing for '{target}' in container '{container_id}'.",
+                    "data": {"path": target, "listing": res["stdout"]},
+                }
+            elif file_op == "read":
+                if not container_path:
+                    return _error_response("Operation 'files read' requires 'container_path' parameter.", "validation_failed")
+                res = await run_podman_command(["exec", container_id, "cat", container_path])
+                if not res["success"]:
+                    return _error_response(f"Failed to read file '{container_path}' in container '{container_id}': {res.get('stderr')}", "files_read_failed")
+                return {
+                    "success": True,
+                    "message": f"File '{container_path}' read from container '{container_id}'.",
+                    "data": {"path": container_path, "content": res["stdout"]},
+                }
+            elif file_op == "write":
+                if not container_path or file_content is None:
+                    return _error_response("Operation 'files write' requires 'container_path' and 'file_content'.", "validation_failed")
+                escaped = file_content.replace("\\", "\\\\").replace('"', '\\"')
+                res = await run_podman_command(["exec", container_id, "sh", "-c", f'echo "{escaped}" > {container_path}'])
+                if not res["success"]:
+                    return _error_response(f"Failed to write file in container '{container_id}': {res.get('stderr')}", "files_write_failed")
+                return {
+                    "success": True,
+                    "message": f"Content written to '{container_path}' in container '{container_id}'.",
+                    "data": {"path": container_path},
+                }
+            else:
+                return _error_response(f"Unsupported file operation: {file_op}", "unsupported_operation")
+
+        elif operation == "resources":
+            if not resource_op:
+                return _error_response("Operation 'resources' requires 'resource_op' parameter (get/set).", "validation_failed")
+            if resource_op == "get":
+                res = await run_podman_command(["inspect", container_id])
+                if not res["success"]:
+                    return _error_response(f"Failed to inspect container '{container_id}' for resources: {res.get('stderr')}", "resources_get_failed")
+                limits = {}
+                try:
+                    info = json.loads(res["stdout"])
+                    if info and isinstance(info, list):
+                        hc = info[0].get("HostConfig", {})
+                        limits["cpu_shares"] = hc.get("CpuShares", 0)
+                        limits["memory"] = hc.get("Memory", 0)
+                        limits["memory_swap"] = hc.get("MemorySwap", 0)
+                        limits["nano_cpus"] = hc.get("NanoCpus", 0)
+                        si = info[0].get("State", {})
+                        limits["restart_count"] = si.get("RestartCount", 0)
+                        limits["oom_killed"] = si.get("OOMKilled", False)
+                except Exception:
+                    pass
+                return {
+                    "success": True,
+                    "message": f"Resource limits retrieved for container '{container_id}'.",
+                    "data": limits,
+                }
+            elif resource_op == "set":
+                if not cpu_limit and not memory_limit:
+                    return _error_response("Operation 'resources set' requires at least 'cpu_limit' or 'memory_limit'.", "validation_failed")
+                update_args = ["update"]
+                if cpu_limit:
+                    update_args += ["--cpus", cpu_limit]
+                if memory_limit:
+                    update_args += ["--memory", memory_limit]
+                update_args.append(container_id)
+                res = await run_podman_command(update_args)
+                if not res["success"]:
+                    return _error_response(f"Failed to set resource limits on container '{container_id}': {res.get('stderr')}", "resources_set_failed")
+                return {
+                    "success": True,
+                    "message": f"Resource limits applied to container '{container_id}'.",
+                    "data": {"cpu_limit": cpu_limit, "memory_limit": memory_limit},
+                }
+            else:
+                return _error_response(f"Unsupported resource operation: {resource_op}", "unsupported_operation")
 
         else:
             return _error_response(f"Unsupported operation: {operation}", "unsupported_operation")

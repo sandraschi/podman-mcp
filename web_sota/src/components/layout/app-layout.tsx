@@ -5,7 +5,7 @@ import { useConnection } from '@/store/connection';
 import { useZoom } from '@/lib/useZoom';
 // import { Toaster } from '@/components/ui/toaster';
 
-const BACKEND_PORT = 10807;
+const BACKEND_PORT = 11113;
 const BACKOFF = [1, 2, 4, 8, 16, 30];
 
 interface AppLayoutProps {

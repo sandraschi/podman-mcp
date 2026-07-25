@@ -7,4 +7,4 @@ if (-not (Test-Path -LiteralPath $FleetStartPath)) {
 }
 . $FleetStartPath
 
-if (-not (Stop-FleetPortListeners -Ports @(10806, 10807) -Label "podman-mcp")) { exit 1 }
+if (-not (Stop-FleetPortListeners -Ports @(11112, 11113) -Label "podman-mcp")) { exit 1 }

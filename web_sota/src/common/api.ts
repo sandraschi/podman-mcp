@@ -53,7 +53,7 @@ export interface LlmProvider {
   reachable: boolean;
 }
 
-const API_BASE = import.meta.env.VITE_API_BASE ?? (import.meta.env.PROD ? "http://127.0.0.1:10807" : "");
+const API_BASE = import.meta.env.VITE_API_BASE ?? (import.meta.env.PROD ? "http://127.0.0.1:11113" : "");
 const API = `${API_BASE}/api`;
 const LLM_KEY = "podman-mcp-llm-settings";
 

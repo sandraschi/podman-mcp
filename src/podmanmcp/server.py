@@ -76,8 +76,8 @@ def run_fastapi_server():
     from podmanmcp.api.app import create_app
 
     app = create_app()
-    logger.info("Starting FastAPI server on port 10807...")
-    uvicorn.run(app, host="127.0.0.1", port=10807, log_level="warning")
+    logger.info("Starting FastAPI server on port 11113...")
+    uvicorn.run(app, host="127.0.0.1", port=11113, log_level="warning")
 
 
 def main() -> None:

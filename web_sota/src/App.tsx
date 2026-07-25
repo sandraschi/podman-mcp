@@ -12,6 +12,7 @@ import { Help } from '@/pages/help';
 import { Settings } from '@/pages/settings';
 import { LogsPage } from '@/pages/logs';
 import { Compose } from '@/pages/compose';
+import { MigratePage } from '@/pages/migrate';
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
           <Route path="/help" element={<Help />} />
           <Route path="/logs" element={<LogsPage />} />
           <Route path="/compose" element={<Compose />} />
+          <Route path="/migrate" element={<MigratePage />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

@@ -20,9 +20,9 @@ def create_app() -> FastAPI:
     app.add_middleware(
         CORSMiddleware,
         allow_origins=[
-            "http://127.0.0.1:10807",
-            "http://localhost:10807",
-            "http://goliath:10807",
+            "http://127.0.0.1:11112",
+            "http://localhost:11112",
+            "http://goliath:11112",
             "http://tauri.localhost",
             "https://tauri.localhost",
             "tauri://localhost",
@@ -190,7 +190,7 @@ def create_app() -> FastAPI:
             cpu = mem = disk = None
         return {
             "success": True,
-            "backend": {"port": 10807, "status": "running"},
+            "backend": {"port": 11113, "status": "running"},
             "system": {"cpu_percent": cpu, "memory_percent": mem, "disk_percent": disk},
             "tools": {"total": 0},
             "cua_status": {"tesseract_available": False, "window_found": False},
@@ -204,4 +204,4 @@ if __name__ == "__main__":
 
     app = create_app()
     host = os.environ.get("HOST", "127.0.0.1")
-    uvicorn.run(app, host=host, port=10807)
+    uvicorn.run(app, host=host, port=11113)

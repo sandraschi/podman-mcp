@@ -56,8 +56,8 @@ export function Help() {
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
                                 {[
                                     { label: "Version", value: "3.5.0", icon: Info },
-                                    { label: "Backend", value: "127.0.0.1:10807", icon: Server },
-                                    { label: "Frontend", value: "127.0.0.1:10806", icon: Zap },
+                                    { label: "Backend", value: "127.0.0.1:11113", icon: Server },
+                                    { label: "Frontend", value: "127.0.0.1:11112", icon: Zap },
                                     { label: "MCP endpoint", value: "/mcp (HTTP SSE)", icon: MessageSquare },
                                 ].map((s) => (
                                     <div key={s.label} className="bg-slate-900/60 rounded-lg p-3 border border-slate-800">
@@ -117,7 +117,7 @@ export function Help() {
       +--- (STDIO JSON-RPC)
       |
       v
-Podman MCP Server (FastMCP / Python) <--- HTTP SSE Bridge (:10807) <--- React Web App (:10806)
+Podman MCP Server (FastMCP / Python) <--- HTTP SSE Bridge (:11113) <--- React Web App (:11112)
       |
       v  [Asynchronous Subprocess Executor]
       |
