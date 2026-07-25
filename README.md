@@ -31,6 +31,13 @@ While Docker relies on a monolithic background service (the Docker Daemon, `dock
 | **Windows (NSIS)** | `just build-native` → run `*-setup.exe` |
 | **Dev (any OS)** | `uv sync && .\start.ps1` → `localhost:11112` |
 
+## Ports
+
+| Port | Service |
+|------|---------|
+| 11112 | Frontend (Vite React SPA) |
+| 11113 | Backend (FastAPI + MCP HTTP `/mcp`) |
+
 ## Quick Start
 
 ```powershell
@@ -40,7 +47,7 @@ uv sync
 .\start.ps1
 ```
 
-Opens the web dashboard on `http://127.0.0.1:11112` (API bridge runs on `11113`).
+Opens dashboard on `http://127.0.0.1:11112`. API bridge on `11113`.
 
 ## What You Can Do
 
