@@ -1,12 +1,14 @@
-# 🦭 Podman MCP (podman-mcp)
+# podman-mcp
 
-[![Python](https://img.shields.io/badge/python-3.12+-blue.svg?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
-[![FastMCP](https://img.shields.io/badge/FastMCP-3.5-purple.svg?style=for-the-badge&logo=fastapi&logoColor=white)](https://github.com/jlowin/fastmcp)
-[![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20WSL2-cyan.svg?style=for-the-badge&logo=windows&logoColor=white)](#requirements)
-[![UI](https://img.shields.io/badge/UI-React%2019%20%2B%20Vite-blueviolet.svg?style=for-the-badge&logo=react&logoColor=white)](#webapp)
-[![License](https://img.shields.io/badge/license-MIT-green.svg?style=for-the-badge)](LICENSE)
+<p align="center">
+  <a href="https://github.com/casey/just"><img src="https://img.shields.io/badge/just-ready_to_go-7c5cfc?style=flat-square&logo=just&logoColor=white" alt="Just"></a>
+  <a href="https://python.org"><img src="https://img.shields.io/badge/Python-3.12+-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python"></a>
+  <a href="https://github.com/PrefectHQ/fastmcp"><img src="https://img.shields.io/badge/FastMCP-3.5-7c5cfc?style=flat-square" alt="FastMCP"></a>
+  <a href="https://podman.io/"><img src="https://img.shields.io/badge/Podman-Windows%20%7C%20WSL2-892CA0?style=flat-square" alt="Podman"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-yellow?style=flat-square" alt="MIT"></a>
+</p>
 
-> A premium, daemon-less FastMCP 3.5 control plane for **Podman** container engines on Windows and WSL2 — featuring container management, native Pod orchestration, compose stacks, system analytics, and a glassmorphism React web dashboard.
+> A daemon-less FastMCP 3.5 control plane for **Podman** on Windows and WSL2 — containers, pods, compose stacks, system analytics, and a glass React web dashboard.
 
 ---
 
