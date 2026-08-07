@@ -12,7 +12,7 @@ if src_dir not in sys.path:
     sys.path.insert(0, src_dir)
 
 # Import only what we need to test the singleton
-from fastmcp import FastMCP  # noqa: E402
+from fastmcp import FastMCP
 
 
 class FastMCPSingleton:

@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import logging
 from typing import Annotated, Any, Literal
+
 from pydantic import Field
 
 from podmanmcp.mcp_instance import mcp
@@ -23,9 +24,7 @@ async def manage_pods(
     ],
     pod_id: Annotated[
         str | None,
-        Field(
-            description="Target Pod ID or Name. Required for inspect, start, stop, and delete operations."
-        ),
+        Field(description="Target Pod ID or Name. Required for inspect, start, stop, and delete operations."),
     ] = None,
     pod_name: Annotated[
         str | None,
@@ -40,8 +39,8 @@ async def manage_pods(
     Manage Podman Pods (groups of one or more shared-namespace containers).
 
     [RATIONALE]
-    Pods are a primary feature of Podman, allowing developers to group containers 
-    that share localhost network namespaces (mimicking Kubernetes Pods). 
+    Pods are a primary feature of Podman, allowing developers to group containers
+    that share localhost network namespaces (mimicking Kubernetes Pods).
     This tool groups all pod operations to make them easily discoverable.
 
     Operations:
@@ -66,23 +65,21 @@ async def manage_pods(
     try:
         # 1. Operation validation checks
         if operation in ["inspect", "start", "stop", "delete"] and not pod_id:
-            return _error_response(
-                f"Operation '{operation}' requires a 'pod_id' parameter.", "validation_failed"
-            )
+            return _error_response(f"Operation '{operation}' requires a 'pod_id' parameter.", "validation_failed")
 
         # 2. Execute operations
         if operation == "list":
             res = await run_podman_command(["pod", "ps", "--format", "json"])
             if not res["success"]:
                 return _error_response(f"Failed to list pods: {res.get('stderr')}", "list_failed")
-            
+
             pods = []
             if res["stdout"].strip():
                 try:
                     pods = json.loads(res["stdout"])
                 except Exception as parse_err:
                     logger.warning("Failed to parse pods JSON", error=str(parse_err))
-                    
+
             return {
                 "success": True,
                 "message": f"Found {len(pods)} pods.",
@@ -94,7 +91,7 @@ async def manage_pods(
             res = await run_podman_command(["pod", "inspect", pod_id])
             if not res["success"]:
                 return _error_response(f"Failed to inspect pod '{pod_id}': {res.get('stderr')}", "inspect_failed")
-            
+
             inspect_data = {}
             if res["stdout"].strip():
                 try:
@@ -112,15 +109,15 @@ async def manage_pods(
         elif operation == "create":
             if not pod_name:
                 return _error_response("Operation 'create' requires a 'pod_name' parameter.", "validation_failed")
-            
+
             run_args = ["pod", "create", "--name", pod_name]
             if ports:
                 run_args += ["-p", ports]
-                
+
             res = await run_podman_command(run_args)
             if not res["success"]:
                 return _error_response(f"Failed to create pod '{pod_name}': {res.get('stderr')}", "create_failed")
-                
+
             pod_id_created = res["stdout"].strip()
             return {
                 "success": True,

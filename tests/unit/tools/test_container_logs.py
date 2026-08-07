@@ -8,12 +8,12 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 import podman
-from podmanmcp.tools.containers.container_models import ContainerLogsRequest
 from fastmcp.exceptions import ToolError
-from pydantic import ValidationError
 
 # Import the tools we want to test
 from podmanmcp.tools.containers.container_logs import _parse_log_entry, get_container_logs, stream_container_logs
+from podmanmcp.tools.containers.container_models import ContainerLogsRequest
+from pydantic import ValidationError
 
 
 class TestContainerLogs(unittest.TestCase):

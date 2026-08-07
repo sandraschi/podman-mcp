@@ -153,8 +153,24 @@ def nav_click_through(out):
         first_y = wy + int(cfg("sidebar_first_y", 130))
         step_y = int(cfg("sidebar_step_y", 45))
         for idx, (label, expected_text) in enumerate(nav_items):
-            click_y = first_y + idx * step_y
-            pywinauto.mouse.click(button="left", coords=(sidebar_x, click_y))
+            clicked = False
+            try:
+                import pywinauto
+                link = _PYWINWIN.descendants(title=label)
+                if link:
+                    link[0].click_input()
+                    clicked = True
+                else:
+                    elements = _PYWINWIN.descendants(control_type="Hyperlink")
+                    el = [e for e in elements if label.lower() in (e.window_text() or "").lower()]
+                    if el:
+                        el[0].click_input()
+                        clicked = True
+            except Exception:
+                pass
+            if not clicked:
+                click_y = first_y + idx * step_y
+                pywinauto.mouse.click(button="left", coords=(sidebar_x, click_y))
             time.sleep(2)
             text = pytesseract.image_to_string(_PYWINWIN.capture_as_image())
             if expected_text.lower() in text.lower():

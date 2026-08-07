@@ -10,4 +10,4 @@ _src = Path(__file__).resolve().parent.parent
 if str(_src) not in sys.path:
     sys.path.insert(0, str(_src))
 
-from server import web_app as app  # noqa: E402, F401
+from server import web_app as app  # noqa: F401

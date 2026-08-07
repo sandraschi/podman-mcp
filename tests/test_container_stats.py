@@ -9,7 +9,6 @@ from unittest.mock import MagicMock, patch
 import podman
 import pytest
 from podman.models.containers import Container
-
 from podmanmcp.tools.containers.container_stats import (
     BlockIOStats,
     ContainerStats,

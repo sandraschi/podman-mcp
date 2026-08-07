@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import logging
 from typing import Annotated, Any, Literal
+
 from pydantic import Field
 
 from podmanmcp.mcp_instance import mcp
@@ -70,7 +71,7 @@ async def manage_health(
 
             state_info = info.get("State", {})
             host_config = info.get("HostConfig", {})
-            config = info.get("Config", {})
+            info.get("Config", {})
 
             restart_count = state_info.get("RestartCount", 0)
             oom_killed = state_info.get("OOMKilled", False)
@@ -94,7 +95,10 @@ async def manage_health(
             if logs_res["success"]:
                 for line in (logs_res["stdout"] + logs_res["stderr"]).splitlines():
                     lower = line.lower()
-                    if any(kw in lower for kw in ["error", "fatal", "panic", "exception", "traceback", "refused", "timeout"]):
+                    if any(
+                        kw in lower
+                        for kw in ["error", "fatal", "panic", "exception", "traceback", "refused", "timeout"]
+                    ):
                         error_lines += 1
             if error_lines > 10:
                 issues.append({"severity": "error", "detail": f"{error_lines} error lines in recent logs"})
@@ -103,7 +107,9 @@ async def manage_health(
 
             mem_limit = host_config.get("Memory", 0)
             if mem_limit > 0 and mem_used > mem_limit * 0.9:
-                issues.append({"severity": "warning", "detail": f"Memory usage near limit ({mem_used / mem_limit:.0%})"})
+                issues.append(
+                    {"severity": "warning", "detail": f"Memory usage near limit ({mem_used / mem_limit:.0%})"}
+                )
 
             status = "healthy" if not any(i["severity"] == "error" for i in issues) else "unhealthy"
             return {
@@ -156,7 +162,12 @@ async def manage_health(
                 "success": True,
                 "message": f"System overview: {len(containers)} containers ({running} running, {exited} exited, {restarting} restarting), {image_count} images.",
                 "data": {
-                    "containers": {"total": len(containers), "running": running, "exited": exited, "restarting": restarting},
+                    "containers": {
+                        "total": len(containers),
+                        "running": running,
+                        "exited": exited,
+                        "restarting": restarting,
+                    },
                     "images": {"total": image_count},
                     "disk": disk_data,
                     "alerts": alerts,
@@ -172,7 +183,13 @@ async def manage_health(
 
             exited = sum(1 for c in containers if "exit" in c.get("State", "").lower())
             if exited > 10:
-                recs.append({"priority": "medium", "action": "prune", "detail": f"Remove {exited} stopped containers: podman container prune"})
+                recs.append(
+                    {
+                        "priority": "medium",
+                        "action": "prune",
+                        "detail": f"Remove {exited} stopped containers: podman container prune",
+                    }
+                )
 
             images_res = await run_podman_command(["images", "--format", "json"])
             dangling = 0
@@ -180,22 +197,44 @@ async def manage_health(
                 images = json.loads(images_res["stdout"])
                 dangling = sum(1 for i in images if "<none>" in str(i.get("Names", i.get("Repository", ""))))
                 if dangling > 5:
-                    recs.append({"priority": "low", "action": "prune_images", "detail": f"Remove {dangling} dangling images: podman image prune"})
+                    recs.append(
+                        {
+                            "priority": "low",
+                            "action": "prune_images",
+                            "detail": f"Remove {dangling} dangling images: podman image prune",
+                        }
+                    )
 
             for c in containers:
                 state = c.get("State", "").lower()
                 if "restart" in state:
                     name = c.get("Names", [c.get("ID", "unknown")])
                     name = name[0] if isinstance(name, list) else name
-                    recs.append({"priority": "high", "action": "investigate_restart", "detail": f"Inspect '{name}': check logs and restart count"})
+                    recs.append(
+                        {
+                            "priority": "high",
+                            "action": "investigate_restart",
+                            "detail": f"Inspect '{name}': check logs and restart count",
+                        }
+                    )
 
             if not recs:
-                recs.append({"priority": "info", "action": "none", "detail": "System looks healthy — no recommendations needed."})
+                recs.append(
+                    {
+                        "priority": "info",
+                        "action": "none",
+                        "detail": "System looks healthy — no recommendations needed.",
+                    }
+                )
 
             return {
                 "success": True,
                 "message": f"Generated {len(recs)} recommendations.",
-                "data": {"recommendations": sorted(recs, key=lambda r: {"high": 0, "medium": 1, "low": 2, "info": 3}.get(r["priority"], 4))},
+                "data": {
+                    "recommendations": sorted(
+                        recs, key=lambda r: {"high": 0, "medium": 1, "low": 2, "info": 3}.get(r["priority"], 4)
+                    )
+                },
             }
 
         else:

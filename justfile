@@ -1,3 +1,5 @@
+set windows-shell := ["powershell.exe", "-NoProfile", "-Command"]
+
 import 'scripts/just/fleet.just'
 
 name := "podman-mcp"
@@ -9,7 +11,7 @@ REPO := justfile_directory()
 default:
     @just --list
 
-# ── Build ─
+# --- Build ---
 
 # Sync Python dependencies
 build:
@@ -21,14 +23,14 @@ build-webapp:
 
 # Tauri native installer (Windows release)
 build-native:
-    pwsh -NoLogo -File native/build.ps1
+    powershell.exe -NoProfile -File native/build.ps1
 
 build-native-debug:
     Set-Location native
     $env:Path = "$env:USERPROFILE\.cargo\bin;$env:Path"
     npx @tauri-apps/cli build --debug
 
-# ── Test ─
+# --- Test ---
 
 # Run test suite
 test:
@@ -38,7 +40,7 @@ test:
 test-cov:
     uv run pytest tests/ --cov=src --cov-report=html
 
-# ── Lint ─
+# --- Lint ---
 
 # Run ruff (Python) + biome (webapp)
 check:
@@ -51,7 +53,7 @@ fix:
     uv run ruff format .
     cd web_sota && npx @biomejs/biome check --write .
 
-# ── Podman ─
+# --- Podman ---
 
 # Start the server
 run:
@@ -73,7 +75,7 @@ up:
 down:
     podman compose down
 
-# ── Housekeeping ─
+# --- Housekeeping ---
 
 # Clean build artifacts
 clean:
@@ -82,7 +84,7 @@ clean:
 # View server logs
 logs:
     Get-Content logs/podmanmcp.log -Tail 50 -Wait
-# ── Playwright E2E ─────────────────────────────────────────────────────
+# --- Playwright E2E ---
 
 # Install Playwright browsers (one-time)
 e2e-install:
@@ -94,3 +96,9 @@ e2e:
 	cd {{REPO}}\web_sota
 	npx playwright test
 
+
+# Bootstrap: install dev deps + pre-commit hook
+bootstrap:
+    uv sync --group dev
+    uv run pre-commit install
+    Write-Host "Pre-commit hooks installed." -ForegroundColor Green

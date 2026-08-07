@@ -6,6 +6,7 @@ import json
 import logging
 import os
 from typing import Annotated, Any, Literal
+
 from pydantic import Field
 
 from podmanmcp.mcp_instance import mcp
@@ -24,25 +25,27 @@ async def manage_compose(
     ],
     project_path: Annotated[
         str,
-        Field(
-            description="The filesystem directory path containing the podman-compose.yml file."
-        ),
+        Field(description="The filesystem directory path containing the podman-compose.yml file."),
     ],
     file_name: Annotated[
         str | None,
-        Field(description="Optional custom compose file name (e.g. 'podman-compose.prod.yml') if different from default."),
+        Field(
+            description="Optional custom compose file name (e.g. 'podman-compose.prod.yml') if different from default."
+        ),
     ] = None,
     volumes: Annotated[
         bool | None,
-        Field(description="Remove named volumes declared in the volumes section of the compose file. Applicable to 'down' operation."),
+        Field(
+            description="Remove named volumes declared in the volumes section of the compose file. Applicable to 'down' operation."
+        ),
     ] = False,
 ) -> dict[str, Any]:
     """
     Manage multi-container stack deployments using Podman Compose.
 
     [RATIONALE]
-    Groups all multi-container operations (compose up/down orchestration, service listing, 
-    and log aggregations) under a single tool. Podman Compose manages multi-container 
+    Groups all multi-container operations (compose up/down orchestration, service listing,
+    and log aggregations) under a single tool. Podman Compose manages multi-container
     applications inside a unified project directory, which this tool exposes.
 
     Operations:
@@ -83,9 +86,9 @@ async def manage_compose(
         if operation == "up":
             # Run in project directory
             # timeout set to 180s for download & build
-            cmd_args = compose_args + ["up", "-d"]
-            
-            # We must specify Cwd when running the command, but since run_podman_command runs it 
+            cmd_args = [*compose_args, "up", "-d"]
+
+            # We must specify Cwd when running the command, but since run_podman_command runs it
             # we can inject -C path or run it relative.
             # Podman CLI supports global option -C / --workdir to change directory!
             # Let's check: podman compose -C /path/to/project up -d
@@ -95,16 +98,16 @@ async def manage_compose(
             # Wait, is --workdir a global option?
             # Yes, podman --workdir <dir> ... is a global option for podman.
             # Or we can just let it run. Let's use --workdir to make sure it's directory-independent!
-            
-            run_args = ["--workdir", abs_path] + cmd_args
+
+            run_args = ["--workdir", abs_path, *cmd_args]
             res = await run_podman_command(run_args, timeout=180.0)
-            
+
             if not res["success"]:
                 return _error_response(
                     f"Compose up failed: {res.get('stderr')}. Command executed: {res.get('command')}",
                     "compose_up_failed",
                 )
-                
+
             return {
                 "success": True,
                 "message": f"Compose stack started successfully in background for project: {abs_path}",
@@ -112,19 +115,19 @@ async def manage_compose(
             }
 
         elif operation == "down":
-            cmd_args = compose_args + ["down"]
+            cmd_args = [*compose_args, "down"]
             if volumes:
                 cmd_args.append("-v")
-                
-            run_args = ["--workdir", abs_path] + cmd_args
+
+            run_args = ["--workdir", abs_path, *cmd_args]
             res = await run_podman_command(run_args, timeout=60.0)
-            
+
             if not res["success"]:
                 return _error_response(
                     f"Compose down failed: {res.get('stderr')}",
                     "compose_down_failed",
                 )
-                
+
             return {
                 "success": True,
                 "message": f"Compose stack stopped and cleaned up successfully for project: {abs_path}",
@@ -132,23 +135,23 @@ async def manage_compose(
             }
 
         elif operation == "ps":
-            cmd_args = compose_args + ["ps", "--format", "json"]
-            run_args = ["--workdir", abs_path] + cmd_args
+            cmd_args = [*compose_args, "ps", "--format", "json"]
+            run_args = ["--workdir", abs_path, *cmd_args]
             res = await run_podman_command(run_args)
-            
+
             if not res["success"]:
                 return _error_response(
                     f"Failed to list compose status: {res.get('stderr')}",
                     "compose_ps_failed",
                 )
-                
+
             services = []
             if res["stdout"].strip():
                 try:
                     services = json.loads(res["stdout"])
                 except Exception:
                     pass
-                    
+
             return {
                 "success": True,
                 "message": f"Found {len(services)} services in compose stack.",
@@ -156,16 +159,16 @@ async def manage_compose(
             }
 
         elif operation == "logs":
-            cmd_args = compose_args + ["logs", "--tail", "100"]
-            run_args = ["--workdir", abs_path] + cmd_args
+            cmd_args = [*compose_args, "logs", "--tail", "100"]
+            run_args = ["--workdir", abs_path, *cmd_args]
             res = await run_podman_command(run_args)
-            
+
             if not res["success"]:
                 return _error_response(
                     f"Failed to get compose logs: {res.get('stderr')}",
                     "compose_logs_failed",
                 )
-                
+
             return {
                 "success": True,
                 "message": "Retrieved last 100 log lines from compose stack.",
@@ -173,8 +176,8 @@ async def manage_compose(
             }
 
         elif operation == "build":
-            cmd_args = compose_args + ["build"]
-            run_args = ["--workdir", abs_path] + cmd_args
+            cmd_args = [*compose_args, "build"]
+            run_args = ["--workdir", abs_path, *cmd_args]
             res = await run_podman_command(run_args, timeout=300.0)
             if not res["success"]:
                 return _error_response(
@@ -188,8 +191,8 @@ async def manage_compose(
             }
 
         elif operation == "config":
-            cmd_args = compose_args + ["config"]
-            run_args = ["--workdir", abs_path] + cmd_args
+            cmd_args = [*compose_args, "config"]
+            run_args = ["--workdir", abs_path, *cmd_args]
             res = await run_podman_command(run_args)
             if not res["success"]:
                 return _error_response(

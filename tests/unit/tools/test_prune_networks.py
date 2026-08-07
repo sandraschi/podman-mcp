@@ -74,7 +74,7 @@ class TestPruneNetworks:
 
         # Verify the Podman command was called correctly
         mock_run_podman.assert_called_once()
-        args, kwargs = mock_run_podman.call_args
+        args, _kwargs = mock_run_podman.call_args
         assert "network" in args[1]
         assert "prune" in args[1]
         assert "--force" in args[1]

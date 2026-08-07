@@ -50,7 +50,7 @@ class ComposeManager:
         # Try 'podman compose' (newer versions)
         try:
             subprocess.run(
-                ["podman", "compose", "version"],  # noqa: S607
+                ["podman", "compose", "version"],
                 capture_output=True,
                 check=True,
             )
@@ -61,7 +61,7 @@ class ComposeManager:
         # Fall back to 'podman-compose' (older versions)
         try:
             subprocess.run(
-                ["podman-compose", "version"],  # noqa: S607
+                ["podman-compose", "version"],
                 capture_output=True,
                 check=True,
             )

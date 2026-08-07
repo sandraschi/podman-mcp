@@ -9,11 +9,11 @@ from fastapi import Body, Depends, FastAPI, HTTPException, Query
 from fastapi.responses import Response, StreamingResponse
 from fastmcp import FastMCP
 
+from podmanmcp.tools.compose import manage_compose
 from podmanmcp.tools.containers import manage_containers
 from podmanmcp.tools.images import manage_images
-from podmanmcp.tools.system import manage_system
 from podmanmcp.tools.pods import manage_pods
-from podmanmcp.tools.compose import manage_compose
+from podmanmcp.tools.system import manage_system
 
 from .activity_log import (
     SortOrder,
@@ -52,7 +52,7 @@ def setup_webapp(app: FastAPI, mcp_app: FastMCP):
                 "containers": True,
                 "pods": True,
                 "images": True,
-                "volumes": True,   # New SOTA page
+                "volumes": True,  # New SOTA page
                 "networks": True,  # New SOTA page
                 "tools": True,
                 "logs": True,
@@ -188,7 +188,7 @@ def setup_webapp(app: FastAPI, mcp_app: FastMCP):
         log_activity("tool_call", "manage_system status + info (web API)")
         status_res = await manage_system(operation="status")
         info_res = await manage_system(operation="info")
-        
+
         # Format disk summary mock / placeholder for API structure compatibility
         disk_summary = {
             "total_containers_size": 0,
@@ -196,7 +196,7 @@ def setup_webapp(app: FastAPI, mcp_app: FastMCP):
             "total_volumes_size": 0,
             "total_size": 0,
         }
-        
+
         return {
             "status": status_res,
             "info": info_res.get("data") or info_res,
@@ -211,7 +211,7 @@ def setup_webapp(app: FastAPI, mcp_app: FastMCP):
     @app.get("/api/compose/projects")
     async def api_compose_projects(all_: bool = Query(False, alias="all")):
         log_activity("tool_call", "list compose projects (web API)")
-        
+
         # Scan repositories for folders containing podman-compose.yml or compose.yaml
         projects = []
         try:
@@ -220,17 +220,21 @@ def setup_webapp(app: FastAPI, mcp_app: FastMCP):
                 for folder in os.listdir(repos_dir):
                     folder_path = os.path.join(repos_dir, folder)
                     if os.path.isdir(folder_path):
-                        if (os.path.exists(os.path.join(folder_path, "podman-compose.yml")) or 
-                            os.path.exists(os.path.join(folder_path, "compose.yaml")) or
-                            os.path.exists(os.path.join(folder_path, "compose.yml"))):
-                            projects.append({
-                                "name": folder,
-                                "path": folder_path.replace("\\", "/"),
-                                "status": "stopped",  # Default state
-                            })
+                        if (
+                            os.path.exists(os.path.join(folder_path, "podman-compose.yml"))
+                            or os.path.exists(os.path.join(folder_path, "compose.yaml"))
+                            or os.path.exists(os.path.join(folder_path, "compose.yml"))
+                        ):
+                            projects.append(
+                                {
+                                    "name": folder,
+                                    "path": folder_path.replace("\\", "/"),
+                                    "status": "stopped",  # Default state
+                                }
+                            )
         except Exception as e:
             logger.warning("Failed to auto-scan compose projects: %s", e)
-            
+
         # Add local template projects
         if not projects:
             projects = [
@@ -240,7 +244,7 @@ def setup_webapp(app: FastAPI, mcp_app: FastMCP):
                     "status": "stopped",
                 }
             ]
-            
+
         return {"success": True, "projects": projects}
 
     @app.get("/api/compose/ps")
@@ -252,21 +256,13 @@ def setup_webapp(app: FastAPI, mcp_app: FastMCP):
     async def api_compose_up(payload: dict = Body(...)):
         project = payload["project"]
         log_activity("tool_call", f"compose up (web API): {project}")
-        return await manage_compose(
-            operation="up",
-            project_path=project,
-            file_name=payload.get("file_name")
-        )
+        return await manage_compose(operation="up", project_path=project, file_name=payload.get("file_name"))
 
     @app.post("/api/compose/down")
     async def api_compose_down(payload: dict = Body(...)):
         project = payload["project"]
         log_activity("tool_call", f"compose down (web API): {project}")
-        return await manage_compose(
-            operation="down",
-            project_path=project,
-            volumes=payload.get("volumes", False)
-        )
+        return await manage_compose(operation="down", project_path=project, volumes=payload.get("volumes", False))
 
     @app.get("/api/compose/logs")
     async def api_compose_logs(project: str = Query(...)):
@@ -286,7 +282,7 @@ def setup_webapp(app: FastAPI, mcp_app: FastMCP):
             pods_list = pods_res.get("pods") or []
 
             status_data = status_res.get("data") or {}
-            
+
             # Map standard system info block for UI dashboard compatibility
             sys_info = {
                 "podman_version": status_data.get("version", "Unknown"),
@@ -296,15 +292,9 @@ def setup_webapp(app: FastAPI, mcp_app: FastMCP):
                     "running": sum(1 for c in containers_list if c.get("state") == "running"),
                     "stopped": sum(1 for c in containers_list if c.get("state") != "running"),
                 },
-                "images": {
-                    "total": len(images_list)
-                },
-                "memory": {
-                    "total_formatted": "Allocated via VM"
-                },
-                "cpu": {
-                    "cores": 0
-                }
+                "images": {"total": len(images_list)},
+                "memory": {"total_formatted": "Allocated via VM"},
+                "cpu": {"cores": 0},
             }
 
             log_activity("tool_call", "dashboard aggregate (web API)")
@@ -312,13 +302,10 @@ def setup_webapp(app: FastAPI, mcp_app: FastMCP):
                 "containers": containers_list,
                 "containers_status": "success" if containers_res.get("success") else "error",
                 "containers_message": containers_res.get("message", ""),
-                
                 "pods": pods_list,
                 "pods_status": "success" if pods_res.get("success") else "error",
-                
                 "system_info": sys_info,
                 "system_status": "success" if status_res.get("success") else "error",
-                
                 "disk_summary": {
                     "total_containers_size": 0,
                     "total_images_size": sum(img.get("size", 0) for img in images_list),
@@ -409,6 +396,7 @@ def setup_webapp(app: FastAPI, mcp_app: FastMCP):
 
     class _AgenticEvent:
         """SSE event types for agentic chat."""
+
         TEXT = "text"
         TOOL_CALL = "tool_call"
         TOOL_RESULT = "tool_result"
@@ -493,6 +481,7 @@ def setup_webapp(app: FastAPI, mcp_app: FastMCP):
             async for line in r.aiter_lines():
                 if line:
                     import json as _json
+
                     try:
                         data = _json.loads(line)
                         yield data.get("message", {}).get("content", "")
@@ -512,6 +501,7 @@ def setup_webapp(app: FastAPI, mcp_app: FastMCP):
                     if chunk == "[DONE]":
                         break
                     import json as _json
+
                     try:
                         data = _json.loads(chunk)
                         yield data["choices"][0].get("delta", {}).get("content", "")
@@ -521,8 +511,10 @@ def setup_webapp(app: FastAPI, mcp_app: FastMCP):
     @app.get("/api/v1/diagnostics")
     async def diagnostics():
         import time
+
         try:
             import psutil
+
             cpu = psutil.cpu_percent()
             mem = psutil.virtual_memory().percent
             try:
@@ -543,13 +535,13 @@ def setup_webapp(app: FastAPI, mcp_app: FastMCP):
     async def recover_podman():
         log_activity("system", "Attempting Podman Machine recovery via VM stop and start", level="WARNING")
         from podmanmcp.podman_context import run_podman_command
-        
+
         # Halt and restart the local virtual machine runner
         stop_res = await run_podman_command(["machine", "stop"])
         start_res = await run_podman_command(["machine", "start"])
-        
+
         success = stop_res["success"] and start_res["success"]
         msg = f"Podman Machine recovery complete. VM stop: {'success' if stop_res['success'] else 'failed'}. VM start: {'success' if start_res['success'] else 'failed'}."
-        
+
         log_activity("system", msg, level="INFO" if success else "ERROR")
         return {"success": success, "message": msg}

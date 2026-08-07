@@ -1,7 +1,7 @@
 """Tool orchestrator for agentic chat — matches NL queries to Podman tools and executes them."""
 
-import time
 import re
+import time
 from typing import Any
 
 from podmanmcp.mcp_instance import get_mcp
@@ -10,7 +10,16 @@ TOOL_PATTERNS: dict[str, list[str]] = {
     "manage_containers": ["list container", "running container", "show container", "all container", "what.*container"],
     "manage_pods": ["list pod", "running pod", "show pod", "what.*pod"],
     "manage_images": ["list image", "show image", "available image", "what image"],
-    "manage_system": ["podman info", "system info", "daemon info", "engine info", "podman version", "status", "volume", "network"],
+    "manage_system": [
+        "podman info",
+        "system info",
+        "daemon info",
+        "engine info",
+        "podman version",
+        "status",
+        "volume",
+        "network",
+    ],
     "manage_compose": ["compose", "podman-compose", "podman compose"],
 }
 
@@ -48,7 +57,7 @@ async def execute_tool(tool_name: str, query: str) -> dict[str, Any]:
             params = {"operation": "stats"}
         else:
             params = {"operation": "list"}
-            
+
     elif tool_name == "manage_pods":
         if "inspect" in q or "detail" in q:
             params = {"operation": "inspect"}
@@ -62,7 +71,7 @@ async def execute_tool(tool_name: str, query: str) -> dict[str, Any]:
             params = {"operation": "delete"}
         else:
             params = {"operation": "list"}
-            
+
     elif tool_name == "manage_images":
         if "inspect" in q:
             params = {"operation": "inspect"}
@@ -76,7 +85,7 @@ async def execute_tool(tool_name: str, query: str) -> dict[str, Any]:
             params = {"operation": "search"}
         else:
             params = {"operation": "list"}
-            
+
     elif tool_name == "manage_system":
         if "info" in q:
             params = {"operation": "info"}
@@ -88,7 +97,7 @@ async def execute_tool(tool_name: str, query: str) -> dict[str, Any]:
             params = {"operation": "network_list"}
         else:
             params = {"operation": "status"}
-            
+
     elif tool_name == "manage_compose":
         if "down" in q or "stop" in q:
             params = {"operation": "down", "project_path": "."}
@@ -106,14 +115,14 @@ async def execute_tool(tool_name: str, query: str) -> dict[str, Any]:
     try:
         result = await mcp.call_tool(tool_name, params)
         elapsed = time.monotonic() - start
-        
+
         # Format result to string if it's not a primitive
         result_str = str(result)
         if hasattr(result, "model_dump_json"):
             result_str = result.model_dump_json()
         elif isinstance(result, (dict, list)):
             result_str = json.dumps(result)
-            
+
         return {
             "success": True,
             "tool": tool_name,

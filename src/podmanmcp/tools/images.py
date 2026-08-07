@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import logging
 from typing import Annotated, Any, Literal
+
 from pydantic import Field
 
 from podmanmcp.mcp_instance import mcp
@@ -23,9 +24,7 @@ async def manage_images(
     ],
     image_name: Annotated[
         str | None,
-        Field(
-            description="Target image reference, tag, or ID. Required for inspect, pull, and delete operations."
-        ),
+        Field(description="Target image reference, tag, or ID. Required for inspect, pull, and delete operations."),
     ] = None,
     search_term: Annotated[
         str | None,
@@ -44,8 +43,8 @@ async def manage_images(
     Manage local and remote container images in Podman.
 
     [RATIONALE]
-    Consolidates image registry search, downloads (pull), listing local inventory, 
-    deleting images, inspecting manifest metadata, and building new images 
+    Consolidates image registry search, downloads (pull), listing local inventory,
+    deleting images, inspecting manifest metadata, and building new images
     from local Podmanfiles/Containerfiles.
 
     Operations:
@@ -70,27 +69,23 @@ async def manage_images(
     try:
         # 1. Parameter validation
         if operation in ["inspect", "pull", "delete"] and not image_name:
-            return _error_response(
-                f"Operation '{operation}' requires an 'image_name' parameter.", "validation_failed"
-            )
+            return _error_response(f"Operation '{operation}' requires an 'image_name' parameter.", "validation_failed")
         if operation == "search" and not search_term:
-            return _error_response(
-                "Operation 'search' requires a 'search_term' parameter.", "validation_failed"
-            )
+            return _error_response("Operation 'search' requires a 'search_term' parameter.", "validation_failed")
 
         # 2. Execute operations
         if operation == "list":
             res = await run_podman_command(["images", "--format", "json"])
             if not res["success"]:
                 return _error_response(f"Failed to list images: {res.get('stderr')}", "list_failed")
-            
+
             images = []
             if res["stdout"].strip():
                 try:
                     images = json.loads(res["stdout"])
                 except Exception as parse_err:
                     logger.warning("Failed to parse images JSON", error=str(parse_err))
-                    
+
             # Map fields for compatibility
             mapped_images = []
             for img in images:
@@ -98,14 +93,16 @@ async def manage_images(
                 repo_tags = img.get("Names") or img.get("names") or []
                 if isinstance(repo_tags, str):
                     repo_tags = [repo_tags]
-                    
-                mapped_images.append({
-                    "id": img.get("Id", img.get("id", ""))[:19],
-                    "repo_tags": repo_tags,
-                    "size": int(img.get("Size", img.get("size", 0))),
-                    "created": img.get("Created", img.get("created", "")),
-                })
-                
+
+                mapped_images.append(
+                    {
+                        "id": img.get("Id", img.get("id", ""))[:19],
+                        "repo_tags": repo_tags,
+                        "size": int(img.get("Size", img.get("size", 0))),
+                        "created": img.get("Created", img.get("created", "")),
+                    }
+                )
+
             return {
                 "success": True,
                 "message": f"Found {len(mapped_images)} local images.",
@@ -117,7 +114,7 @@ async def manage_images(
             res = await run_podman_command(["inspect", image_name])
             if not res["success"]:
                 return _error_response(f"Failed to inspect image '{image_name}': {res.get('stderr')}", "inspect_failed")
-            
+
             inspect_data = {}
             if res["stdout"].strip():
                 try:
@@ -158,7 +155,7 @@ async def manage_images(
             if build_tag:
                 build_args += ["-t", build_tag]
             build_args.append(build_path or ".")
-            
+
             # Build can take time, timeout set to 180s
             res = await run_podman_command(build_args, timeout=180.0)
             if not res["success"]:
@@ -172,8 +169,10 @@ async def manage_images(
         elif operation == "search":
             res = await run_podman_command(["search", "--format", "json", search_term])
             if not res["success"]:
-                return _error_response(f"Registry search failed for '{search_term}': {res.get('stderr')}", "search_failed")
-            
+                return _error_response(
+                    f"Registry search failed for '{search_term}': {res.get('stderr')}", "search_failed"
+                )
+
             results = []
             if res["stdout"].strip():
                 try:

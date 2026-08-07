@@ -15,10 +15,10 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
 
 from podmanmcp.tools.containers.container_tools import list_containers
-
-from podmanmcp import get_podman_status
 from podmanmcp.tools.podman_reconnect import podman_reconnect
 from podmanmcp.tools.podman_status import podman_status
+
+from podmanmcp import get_podman_status
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")

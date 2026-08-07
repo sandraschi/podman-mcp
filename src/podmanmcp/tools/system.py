@@ -5,10 +5,11 @@ from __future__ import annotations
 import json
 import logging
 from typing import Annotated, Any, Literal
+
 from pydantic import Field
 
 from podmanmcp.mcp_instance import mcp
-from podmanmcp.podman_context import check_podman_available, run_podman_command, get_podman_status
+from podmanmcp.podman_context import check_podman_available, get_podman_status, run_podman_command
 from podmanmcp.tools.utils import _error_response
 
 logger = logging.getLogger("podmanmcp")
@@ -56,8 +57,8 @@ async def manage_system(
     Manage system configuration, virtual machines, volumes, and networks in Podman.
 
     [RATIONALE]
-    Consolidates low-level environment, machine virtualization, volume storage, and bridge 
-    networking operations under a single portmanteau to prevent tool catalog explosion 
+    Consolidates low-level environment, machine virtualization, volume storage, and bridge
+    networking operations under a single portmanteau to prevent tool catalog explosion
     and maintain clean context bounds.
 
     Operations:
@@ -110,14 +111,14 @@ async def manage_system(
             # Count local resources
             containers_res = await run_podman_command(["ps", "-a", "--format", "json"])
             images_res = await run_podman_command(["images", "--format", "json"])
-            
+
             containers_count = 0
             if containers_res["success"] and containers_res["stdout"].strip():
                 try:
                     containers_count = len(json.loads(containers_res["stdout"]))
                 except Exception:
                     pass
-                    
+
             images_count = 0
             if images_res["success"] and images_res["stdout"].strip():
                 try:
@@ -145,11 +146,11 @@ async def manage_system(
             res = await run_podman_command(["info", "--format", "json"])
             if not res["success"]:
                 return _error_response(f"Failed to get system info: {res.get('stderr')}", "info_failed")
-            
+
             info_data = {}
             if res["stdout"].strip():
                 info_data = json.loads(res["stdout"])
-                
+
             return {
                 "success": True,
                 "message": "Successfully retrieved system configuration details.",
@@ -160,11 +161,11 @@ async def manage_system(
             res = await run_podman_command(["machine", "list", "--format", "json"])
             if not res["success"]:
                 return _error_response(f"Failed to list machines: {res.get('stderr')}", "machine_list_failed")
-            
+
             machines = []
             if res["stdout"].strip():
                 machines = json.loads(res["stdout"])
-                
+
             return {
                 "success": True,
                 "message": f"Found {len(machines)} Podman machines.",
@@ -222,10 +223,14 @@ async def manage_system(
         elif operation == "generate_systemd":
             target = container_id or name
             if not target:
-                return _error_response("Operation 'generate_systemd' requires 'container_id' or 'name' parameter.", "validation_failed")
+                return _error_response(
+                    "Operation 'generate_systemd' requires 'container_id' or 'name' parameter.", "validation_failed"
+                )
             res = await run_podman_command(["generate", "systemd", "--new", target])
             if not res["success"]:
-                return _error_response(f"Failed to generate systemd unit for '{target}': {res.get('stderr')}", "generate_systemd_failed")
+                return _error_response(
+                    f"Failed to generate systemd unit for '{target}': {res.get('stderr')}", "generate_systemd_failed"
+                )
             unit_text = res["stdout"].strip()
             return {
                 "success": True,
@@ -239,11 +244,11 @@ async def manage_system(
             res = await run_podman_command(["volume", "ls", "--format", "json"])
             if not res["success"]:
                 return _error_response(f"Failed to list volumes: {res.get('stderr')}", "volume_list_failed")
-            
+
             volumes = []
             if res["stdout"].strip():
                 volumes = json.loads(res["stdout"])
-                
+
             return {
                 "success": True,
                 "message": f"Found {len(volumes)} volumes.",
@@ -279,11 +284,11 @@ async def manage_system(
             res = await run_podman_command(["network", "ls", "--format", "json"])
             if not res["success"]:
                 return _error_response(f"Failed to list networks: {res.get('stderr')}", "network_list_failed")
-            
+
             networks = []
             if res["stdout"].strip():
                 networks = json.loads(res["stdout"])
-                
+
             return {
                 "success": True,
                 "message": f"Found {len(networks)} networks.",

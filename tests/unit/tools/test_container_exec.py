@@ -8,12 +8,12 @@ import unittest
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import podman
-from podmanmcp.tools.containers.container_models import ContainerExecRequest
 from fastmcp.exceptions import ToolError
-from pydantic import ValidationError
 
 # Import the tools we want to test
 from podmanmcp.tools.containers.container_exec import execute_in_container
+from podmanmcp.tools.containers.container_models import ContainerExecRequest
+from pydantic import ValidationError
 
 
 class TestContainerExec(unittest.TestCase):

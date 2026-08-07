@@ -73,11 +73,11 @@ class PodmanWatchdog:
         try:
             if self.is_windows:
                 # Windows service restart
-                subprocess.run(["net", "stop", "podman"], check=True, capture_output=True, text=True)  # noqa: S607
-                subprocess.run(["net", "start", "podman"], check=True, capture_output=True, text=True)  # noqa: S607
+                subprocess.run(["net", "stop", "podman"], check=True, capture_output=True, text=True)
+                subprocess.run(["net", "start", "podman"], check=True, capture_output=True, text=True)
             else:
                 # Linux/Unix service restart
-                subprocess.run(["sudo", "systemctl", "restart", "podman"], check=True, capture_output=True, text=True)  # noqa: S607  # noqa: S603 S607
+                subprocess.run(["sudo", "systemctl", "restart", "podman"], check=True, capture_output=True, text=True)
 
             # Give Podman some time to start up
             await asyncio.sleep(5)

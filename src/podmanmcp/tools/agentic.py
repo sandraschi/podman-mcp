@@ -6,6 +6,7 @@ import json
 import logging
 import os
 from typing import Annotated, Any, Literal
+
 from pydantic import Field
 
 from podmanmcp.mcp_instance import mcp
@@ -29,7 +30,9 @@ async def manage_agentic(
     ] = None,
     dry_run: Annotated[
         bool | None,
-        Field(description="If true, simulate actions without making changes. Recommended before destructive operations."),
+        Field(
+            description="If true, simulate actions without making changes. Recommended before destructive operations."
+        ),
     ] = True,
 ) -> dict[str, Any]:
     """
@@ -61,22 +64,32 @@ async def manage_agentic(
     """
     try:
         steps = []
-        summary: dict[str, Any] = {}
 
         if operation == "deploy_compose":
             if not project_path or not os.path.isdir(project_path):
-                return _error_response("'project_path' must be a valid directory for deploy_compose.", "validation_failed")
-            steps.append({"step": "validate_path", "status": "ok", "detail": f"Project directory exists: {project_path}"})
+                return _error_response(
+                    "'project_path' must be a valid directory for deploy_compose.", "validation_failed"
+                )
+            steps.append(
+                {"step": "validate_path", "status": "ok", "detail": f"Project directory exists: {project_path}"}
+            )
             steps.append({"step": "check_podman", "status": "ok"})
             steps.append({"step": "pull_images", "status": "dry_run" if dry_run else "pending"})
             steps.append({"step": "compose_up", "status": "dry_run" if dry_run else "pending"})
             if not dry_run:
-                res = await run_podman_command(["--workdir", os.path.abspath(project_path), "compose", "up", "-d"], timeout=300.0)
+                res = await run_podman_command(
+                    ["--workdir", os.path.abspath(project_path), "compose", "up", "-d"], timeout=300.0
+                )
                 if res["success"]:
                     steps[-1] = {"step": "compose_up", "status": "ok", "detail": res["stdout"].strip()}
                 else:
                     steps[-1] = {"step": "compose_up", "status": "failed", "detail": res.get("stderr")}
-                    return {"success": False, "message": "Compose deployment failed.", "steps": steps, "summary": {"deployed": 0, "failed": 1}}
+                    return {
+                        "success": False,
+                        "message": "Compose deployment failed.",
+                        "steps": steps,
+                        "summary": {"deployed": 0, "failed": 1},
+                    }
             return {
                 "success": True,
                 "message": f"Deploy workflow {'simulated' if dry_run else 'completed'} for {project_path}.",
@@ -88,8 +101,6 @@ async def manage_agentic(
             actions = []
             pruned_ctr = 0
             pruned_img = 0
-            pruned_vol = 0
-            pruned_net = 0
 
             ctr_res = await run_podman_command(["ps", "-a", "--format", "json", "--filter", "status=exited"])
             if ctr_res["success"] and ctr_res["stdout"].strip():
@@ -110,12 +121,12 @@ async def manage_agentic(
                     pruned_img = prune_img_res.get("stdout", "").count("deleted")
             else:
                 pruned_img = 0
-                actions.append(f"Would prune dangling images")
+                actions.append("Would prune dangling images")
             actions.append(f"{'Pruned' if not dry_run else 'Would prune'} {pruned_img} dangling images")
 
             if not dry_run:
-                prune_vol_res = await run_podman_command(["volume", "prune", "-f"])
-                prune_net_res = await run_podman_command(["network", "prune", "-f"])
+                await run_podman_command(["volume", "prune", "-f"])
+                await run_podman_command(["network", "prune", "-f"])
             actions.append("Volume/network pruning complete" if not dry_run else "Would prune volumes and networks")
 
             return {
@@ -131,15 +142,23 @@ async def manage_agentic(
             if ps_res["success"] and ps_res["stdout"].strip():
                 containers = json.loads(ps_res["stdout"])
                 for c in containers:
-                    name = c.get("Names", [c.get("ID", "unknown")])[0] if isinstance(c.get("Names"), list) else c.get("Names", "")
+                    name = (
+                        c.get("Names", [c.get("ID", "unknown")])[0]
+                        if isinstance(c.get("Names"), list)
+                        else c.get("Names", "")
+                    )
                     state = c.get("State", "").lower()
                     status = c.get("Status", "")
                     if "exited" in state:
                         exit_code = status.split("(")[-1].replace(")", "") if "(" in status else "unknown"
-                        findings.append({"container": name, "issue": "exited", "exit_code": exit_code, "severity": "warning"})
+                        findings.append(
+                            {"container": name, "issue": "exited", "exit_code": exit_code, "severity": "warning"}
+                        )
                     elif "restarting" in state:
                         restart_count = status.count("Restarting")
-                        findings.append({"container": name, "issue": "restart_loop", "count": restart_count, "severity": "error"})
+                        findings.append(
+                            {"container": name, "issue": "restart_loop", "count": restart_count, "severity": "error"}
+                        )
                     elif "unhealthy" in state or "unhealthy" in status.lower():
                         findings.append({"container": name, "issue": "unhealthy", "severity": "error"})
                     elif state == "running":
@@ -149,24 +168,49 @@ async def manage_agentic(
                 findings.append({"container": "*", "issue": "podman_unreachable", "severity": "critical"})
 
             if project_path and os.path.isdir(project_path):
-                steps.append({"step": "check_compose_file", "status": "ok" if os.path.isfile(os.path.join(project_path, "podman-compose.yml")) else "missing"})
+                steps.append(
+                    {
+                        "step": "check_compose_file",
+                        "status": "ok"
+                        if os.path.isfile(os.path.join(project_path, "podman-compose.yml"))
+                        else "missing",
+                    }
+                )
 
             errors = [f for f in findings if f["severity"] in ("error", "critical")]
             return {
                 "success": True,
                 "message": f"Diagnosis: {len(findings)} findings ({len(errors)} errors).",
-                "steps": [{"step": f['container'], "status": f['severity'], "issue": f['issue']} for f in findings],
-                "summary": {"total_findings": len(findings), "errors": len(errors), "warnings": len(findings) - len(errors)},
+                "steps": [{"step": f["container"], "status": f["severity"], "issue": f["issue"]} for f in findings],
+                "summary": {
+                    "total_findings": len(findings),
+                    "errors": len(errors),
+                    "warnings": len(findings) - len(errors),
+                },
             }
 
         elif operation == "rollback":
             if not project_path or not os.path.isdir(project_path):
                 return _error_response("'project_path' must be a valid directory for rollback.", "validation_failed")
-            steps.append({"step": "stop_current", "status": "ok", "detail": "Stopping current compose stack" if not dry_run else "Would stop current stack"})
-            steps.append({"step": "remove_containers", "status": "ok", "detail": "Removing old containers" if not dry_run else "Would remove old containers"})
+            steps.append(
+                {
+                    "step": "stop_current",
+                    "status": "ok",
+                    "detail": "Stopping current compose stack" if not dry_run else "Would stop current stack",
+                }
+            )
+            steps.append(
+                {
+                    "step": "remove_containers",
+                    "status": "ok",
+                    "detail": "Removing old containers" if not dry_run else "Would remove old containers",
+                }
+            )
             if not dry_run:
                 await run_podman_command(["--workdir", os.path.abspath(project_path), "compose", "down"], timeout=120.0)
-                await run_podman_command(["--workdir", os.path.abspath(project_path), "compose", "up", "-d"], timeout=300.0)
+                await run_podman_command(
+                    ["--workdir", os.path.abspath(project_path), "compose", "up", "-d"], timeout=300.0
+                )
                 steps.append({"step": "redeploy", "status": "ok", "detail": "Stack re-deployed"})
             else:
                 steps.append({"step": "redeploy", "status": "dry_run", "detail": "Would re-deploy stack"})
@@ -208,7 +252,12 @@ async def manage_agentic(
                 "success": True,
                 "message": f"Health sweep: {len(containers)} containers ({len(unhealthy)} unhealthy{' — restarted' if not dry_run and unhealthy else ''}).",
                 "data": {"containers": results},
-                "summary": {"total": len(containers), "unhealthy": len(unhealthy), "restarted": len(unhealthy) if not dry_run else 0, "dry_run": dry_run},
+                "summary": {
+                    "total": len(containers),
+                    "unhealthy": len(unhealthy),
+                    "restarted": len(unhealthy) if not dry_run else 0,
+                    "dry_run": dry_run,
+                },
             }
 
         else:

@@ -11,7 +11,7 @@ src_dir = str(Path(__file__).parent)
 if src_dir not in sys.path:
     sys.path.insert(0, src_dir)
 
-from podmanmcp.mcp_instance import FastMCPSingleton, get_mcp  # noqa: E402
+from podmanmcp.mcp_instance import FastMCPSingleton, get_mcp
 
 
 def test_singleton():

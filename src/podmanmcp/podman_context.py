@@ -11,6 +11,7 @@ import sys
 from collections.abc import Callable
 from functools import wraps
 from typing import Any, TypeVar, cast
+
 import structlog
 
 # Setup structured logging
@@ -49,7 +50,7 @@ def get_podman_command() -> list[str]:
                 capture_output=True,
                 text=True,
                 timeout=5,
-                creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
+                creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0,
             )
             if res.returncode == 0:
                 log.info("Found podman inside WSL")
@@ -68,15 +69,15 @@ def initialize_podman_connection() -> bool:
     try:
         podman_cmd_base = get_podman_command()
         log.info("Probing Podman system status...", cmd_base=podman_cmd_base)
-        
+
         # Test command by running podman --version
-        test_args = podman_cmd_base + ["--version"]
+        test_args = [*podman_cmd_base, "--version"]
         res = subprocess.run(
             test_args,
             capture_output=True,
             text=True,
             timeout=10,
-            creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
+            creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0,
         )
         if res.returncode == 0:
             podman_available = True
@@ -112,7 +113,7 @@ async def run_podman_command(args: list[str], timeout: float = 30.0) -> dict[str
     """
     cmd = podman_cmd_base + args
     log.debug("Running podman command", command=cmd)
-    
+
     try:
         # Run subprocess asynchronously in a thread pool to avoid blocking the event loop
         def _run():
@@ -121,7 +122,7 @@ async def run_podman_command(args: list[str], timeout: float = 30.0) -> dict[str
                 capture_output=True,
                 text=True,
                 timeout=timeout,
-                creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
+                creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0,
             )
 
         loop = asyncio.get_running_loop()
@@ -192,35 +193,38 @@ def get_podman_status() -> dict[str, Any]:
         "cmd_base": podman_cmd_base,
         "platform": sys.platform,
     }
-    
+
     if podman_available:
         try:
             # Get version info
             res = subprocess.run(
-                podman_cmd_base + ["version", "--format", "json"],
+                [*podman_cmd_base, "version", "--format", "json"],
                 capture_output=True,
                 text=True,
                 timeout=5,
-                creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
+                creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0,
             )
             if res.returncode == 0:
                 import json
+
                 try:
                     version_data = json.loads(res.stdout)
                     # Extract version details safely
                     client_version = version_data.get("Client", {}).get("Version") or version_data.get("Version")
                     server_version = version_data.get("Server", {}).get("Version")
-                    status.update({
-                        "version": client_version,
-                        "server_version": server_version or client_version,
-                        "api_version": version_data.get("Client", {}).get("APIVersion"),
-                    })
+                    status.update(
+                        {
+                            "version": client_version,
+                            "server_version": server_version or client_version,
+                            "api_version": version_data.get("Client", {}).get("APIVersion"),
+                        }
+                    )
                 except Exception:
                     # Fallback plain text parse
                     status["version_raw"] = res.stdout.strip()
         except Exception as e:
             log.warning("Failed to get detailed version", error=str(e))
-            
+
     return status
 
 

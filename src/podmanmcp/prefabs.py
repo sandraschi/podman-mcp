@@ -46,7 +46,10 @@ def build_pods_card(result: dict) -> Card:
                 children=[
                     Metric(label="Name", value=str(item.get("Name", "—"))[:40]),
                     Metric(label="Status", value=str(item.get("Status", "—"))),
-                    Metric(label="Containers", value=str(item.get("NumberOfContainers", item.get("numberOfContainers", "—")))),
+                    Metric(
+                        label="Containers",
+                        value=str(item.get("NumberOfContainers", item.get("numberOfContainers", "—"))),
+                    ),
                 ]
             )
         )

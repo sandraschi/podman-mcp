@@ -19,13 +19,14 @@ from pydantic import ValidationError
 # Import the tools we want to test
 try:
     # Import the module to patch the implementation
-    from podmanmcp.tools.containers import container_lifecycle
     from podmanmcp.tools.containers.container_lifecycle import (
         ContainerAction,
         ContainerLifecycleRequest,
         ContainerLifecycleResponse,
         _manage_container_lifecycle_impl,  # The actual implementation function
     )
+
+    from podmanmcp.tools.containers import container_lifecycle
 
     # Create a reference to the actual implementation for use in tests
     original_impl = _manage_container_lifecycle_impl

@@ -100,7 +100,7 @@ def run_command(
 
     try:
         # Run the command with a timeout
-        result = subprocess.run(  # noqa: S603
+        result = subprocess.run(
             cmd,
             cwd=str(cwd) if cwd else None,
             env=env,

@@ -6,6 +6,7 @@ import json
 import logging
 import os
 from typing import Annotated, Any, Literal
+
 from pydantic import Field
 
 from podmanmcp.mcp_instance import mcp
@@ -20,7 +21,16 @@ _DESTRUCTIVE = {"destructive": True}
 @check_podman_available
 async def manage_backup(
     operation: Annotated[
-        Literal["save_image", "load_image", "export_container", "import_container", "save_volume", "load_volume", "save_compose", "list_backups"],
+        Literal[
+            "save_image",
+            "load_image",
+            "export_container",
+            "import_container",
+            "save_volume",
+            "load_volume",
+            "save_compose",
+            "list_backups",
+        ],
         Field(description="The backup/restore operation to perform"),
     ],
     name: Annotated[
@@ -76,24 +86,38 @@ async def manage_backup(
             if not res["success"]:
                 return _error_response(f"Failed to save image '{name}': {res.get('stderr')}", "save_image_failed")
             sz = os.path.getsize(output_path) if os.path.isfile(output_path) else 0
-            return {"success": True, "message": f"Image '{name}' saved to {output_path} ({sz / 1024 / 1024:.1f} MB).", "data": {"path": output_path, "size_bytes": sz}}
+            return {
+                "success": True,
+                "message": f"Image '{name}' saved to {output_path} ({sz / 1024 / 1024:.1f} MB).",
+                "data": {"path": output_path, "size_bytes": sz},
+            }
 
         elif operation == "load_image":
             args = ["load", "-i", output_path]
             res = await run_podman_command(args, timeout=120.0)
             if not res["success"]:
-                return _error_response(f"Failed to load image from '{output_path}': {res.get('stderr')}", "load_image_failed")
+                return _error_response(
+                    f"Failed to load image from '{output_path}': {res.get('stderr')}", "load_image_failed"
+                )
             loaded = res["stdout"].strip()
             if tag:
-                tag_res = await run_podman_command(["tag", loaded, tag])
-            return {"success": True, "message": f"Image loaded from {output_path}: {loaded}", "data": {"loaded_image": loaded, "tag": tag}}
+                await run_podman_command(["tag", loaded, tag])
+            return {
+                "success": True,
+                "message": f"Image loaded from {output_path}: {loaded}",
+                "data": {"loaded_image": loaded, "tag": tag},
+            }
 
         elif operation == "export_container":
             res = await run_podman_command(["export", "-o", output_path, name], timeout=120.0)
             if not res["success"]:
                 return _error_response(f"Failed to export container '{name}': {res.get('stderr')}", "export_failed")
             sz = os.path.getsize(output_path) if os.path.isfile(output_path) else 0
-            return {"success": True, "message": f"Container '{name}' filesystem exported to {output_path} ({sz / 1024 / 1024:.1f} MB).", "data": {"path": output_path, "size_bytes": sz}}
+            return {
+                "success": True,
+                "message": f"Container '{name}' filesystem exported to {output_path} ({sz / 1024 / 1024:.1f} MB).",
+                "data": {"path": output_path, "size_bytes": sz},
+            }
 
         elif operation == "import_container":
             args = ["import", output_path]
@@ -106,37 +130,78 @@ async def manage_backup(
             res = await run_podman_command(args, timeout=120.0)
             if not res["success"]:
                 return _error_response(f"Failed to import from '{output_path}': {res.get('stderr')}", "import_failed")
-            return {"success": True, "message": f"Container image imported from {output_path}.", "data": {"image_id": res["stdout"].strip()}}
+            return {
+                "success": True,
+                "message": f"Container image imported from {output_path}.",
+                "data": {"image_id": res["stdout"].strip()},
+            }
 
         elif operation == "save_volume":
             backup_file = output_path if output_path.endswith(".tar.gz") else f"{output_path}.tar.gz"
-            res = await run_podman_command([
-                "run", "--rm", "-v", f"{name}:/data", "-v", f"{os.path.dirname(os.path.abspath(backup_file))}:/backup",
-                "alpine", "tar", "czf", f"/backup/{os.path.basename(backup_file)}", "-C", "/data", "."
-            ], timeout=120.0)
+            res = await run_podman_command(
+                [
+                    "run",
+                    "--rm",
+                    "-v",
+                    f"{name}:/data",
+                    "-v",
+                    f"{os.path.dirname(os.path.abspath(backup_file))}:/backup",
+                    "alpine",
+                    "tar",
+                    "czf",
+                    f"/backup/{os.path.basename(backup_file)}",
+                    "-C",
+                    "/data",
+                    ".",
+                ],
+                timeout=120.0,
+            )
             if not res["success"]:
                 return _error_response(f"Failed to save volume '{name}': {res.get('stderr')}", "save_volume_failed")
             sz = os.path.getsize(backup_file) if os.path.isfile(backup_file) else 0
-            return {"success": True, "message": f"Volume '{name}' backed up to {backup_file} ({sz / 1024 / 1024:.1f} MB).", "data": {"path": backup_file, "size_bytes": sz}}
+            return {
+                "success": True,
+                "message": f"Volume '{name}' backed up to {backup_file} ({sz / 1024 / 1024:.1f} MB).",
+                "data": {"path": backup_file, "size_bytes": sz},
+            }
 
         elif operation == "load_volume":
             if not os.path.isfile(output_path):
                 return _error_response(f"Backup file not found: {output_path}", "validation_failed")
             await run_podman_command(["volume", "create", name])
             abs_backup = os.path.abspath(output_path)
-            res = await run_podman_command([
-                "run", "--rm", "-v", f"{name}:/data", "-v", f"{os.path.dirname(abs_backup)}:/backup",
-                "alpine", "tar", "xzf", f"/backup/{os.path.basename(abs_backup)}", "-C", "/data"
-            ], timeout=120.0)
+            res = await run_podman_command(
+                [
+                    "run",
+                    "--rm",
+                    "-v",
+                    f"{name}:/data",
+                    "-v",
+                    f"{os.path.dirname(abs_backup)}:/backup",
+                    "alpine",
+                    "tar",
+                    "xzf",
+                    f"/backup/{os.path.basename(abs_backup)}",
+                    "-C",
+                    "/data",
+                ],
+                timeout=120.0,
+            )
             if not res["success"]:
                 return _error_response(f"Failed to restore volume '{name}': {res.get('stderr')}", "load_volume_failed")
-            return {"success": True, "message": f"Volume '{name}' restored from {output_path}.", "data": {"volume": name}}
+            return {
+                "success": True,
+                "message": f"Volume '{name}' restored from {output_path}.",
+                "data": {"volume": name},
+            }
 
         elif operation == "save_compose":
             if not name or not output_path:
-                return _error_response("Operation 'save_compose' requires 'name' (project path) and 'output_path'.", "validation_failed")
+                return _error_response(
+                    "Operation 'save_compose' requires 'name' (project path) and 'output_path'.", "validation_failed"
+                )
             os.makedirs(output_path, exist_ok=True)
-            info_parts = [f"# Podman Compose Backup: {name}", f"# Date: auto-generated", ""]
+            info_parts = [f"# Podman Compose Backup: {name}", "# Date: auto-generated", ""]
             info_parts.append("## Images")
             images_res = await run_podman_command(["images", "--format", "json"])
             if images_res["success"] and images_res["stdout"].strip():
@@ -144,7 +209,11 @@ async def manage_backup(
                     info_parts.append(f"- {img.get('Names', img.get('Id', 'unknown'))}")
             with open(os.path.join(output_path, "backup-info.txt"), "w") as f:
                 f.write("\n".join(info_parts))
-            return {"success": True, "message": f"Compose project '{name}' metadata saved to {output_path}.", "data": {"path": output_path, "images": len(info_parts) - 3}}
+            return {
+                "success": True,
+                "message": f"Compose project '{name}' metadata saved to {output_path}.",
+                "data": {"path": output_path, "images": len(info_parts) - 3},
+            }
 
         elif operation == "list_backups":
             if not output_path:
@@ -155,8 +224,18 @@ async def manage_backup(
             for f in sorted(os.listdir(output_path)):
                 fp = os.path.join(output_path, f)
                 if os.path.isfile(fp):
-                    files.append({"name": f, "size_bytes": os.path.getsize(fp), "size_mb": round(os.path.getsize(fp) / 1024 / 1024, 1)})
-            return {"success": True, "message": f"Found {len(files)} backup files in {output_path}.", "data": {"files": files}}
+                    files.append(
+                        {
+                            "name": f,
+                            "size_bytes": os.path.getsize(fp),
+                            "size_mb": round(os.path.getsize(fp) / 1024 / 1024, 1),
+                        }
+                    )
+            return {
+                "success": True,
+                "message": f"Found {len(files)} backup files in {output_path}.",
+                "data": {"files": files},
+            }
 
         else:
             return _error_response(f"Unsupported operation: {operation}", "unsupported_operation")

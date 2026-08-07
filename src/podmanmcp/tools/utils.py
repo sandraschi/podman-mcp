@@ -9,18 +9,15 @@ logger = logging.getLogger("podmanmcp")
 
 
 def _error_response(
-    error: str,
-    error_type: str = "general",
-    suggestions: list[str] | None = None,
-    **kwargs: Any
+    error: str, error_type: str = "general", suggestions: list[str] | None = None, **kwargs: Any
 ) -> dict[str, Any]:
     """Auto-logging error response generator.
-    
+
     Captures active exception traceback and logs it to warning/error log
     before returning a structured JSON response to the agent.
     """
     logger.exception("Tool error: %s [%s]", error, error_type)
-    
+
     resp: dict[str, Any] = {
         "success": False,
         "error": error,
@@ -34,6 +31,6 @@ def _error_response(
             "Check that Podman is running and accessible.",
             "Verify your command parameters and try again.",
         ]
-        
+
     resp.update(kwargs)
     return resp

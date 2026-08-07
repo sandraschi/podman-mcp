@@ -8,7 +8,7 @@ from tests.mocks.mock_mcp_server import MockMCPServer
 
 def test_mock_server_basic():
     """Test basic functionality of the mock MCP server."""
-    with MockMCPServer(port=8001) as server:
+    with MockMCPServer(port=8001):
         # Test health check
         response = requests.get("http://localhost:8001/health")
         assert response.status_code == 200
@@ -51,7 +51,7 @@ def test_container_lifecycle():
 
 def test_image_operations():
     """Test image operations."""
-    with MockMCPServer(port=8001) as server:
+    with MockMCPServer(port=8001):
         # Test listing images
         response = requests.get("http://localhost:8001/images")
         assert response.status_code == 200
@@ -73,4 +73,4 @@ if __name__ == "__main__":
 
     import pytest
 
-    sys.exit(pytest.main([__file__] + sys.argv[1:]))
+    sys.exit(pytest.main([__file__, *sys.argv[1:]]))

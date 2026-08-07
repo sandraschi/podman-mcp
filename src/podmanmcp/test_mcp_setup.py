@@ -10,8 +10,8 @@ src_dir = str(Path(__file__).parent)
 if src_dir not in sys.path:
     sys.path.insert(0, src_dir)
 
-from podmanmcp.logging_config import configure_logging, logger  # noqa: E402
-from podmanmcp.mcp_instance import get_mcp  # noqa: E402
+from podmanmcp.logging_config import configure_logging, logger
+from podmanmcp.mcp_instance import get_mcp
 
 # Configure logging
 configure_logging(level="INFO")

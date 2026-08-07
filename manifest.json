@@ -3,7 +3,7 @@
   "name": "podman-mcp",
   "version": "3.5.0",
   "description": "FastMCP 3.5 Podman control plane — containers, Machine health, sampling, prefab UI, agentic workflows, compose config, image compare",
-  "long_description": "FastMCP 3.4 MCP server for Podman containers, pods, images, networks, volumes, compose, Podman Machine recovery, and a React web dashboard (10806/10807).",
+  "long_description": "FastMCP 3.5 MCP server for Podman containers, pods, images, networks, volumes, compose, Podman Machine recovery, and a React web dashboard (11112/11113).",
   "author": {
     "name": "Sandra Schimanovich",
     "email": "sandra@sandraschi.dev",
