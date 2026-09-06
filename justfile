@@ -19,16 +19,14 @@ build:
 
 # Build webapp
 build-webapp:
-    cd web_sota && npm install && npm run build
+    cd web_sota; npm install; npm run build
 
 # Tauri native installer (Windows release)
 build-native:
     powershell.exe -NoProfile -File native/build.ps1
 
 build-native-debug:
-    Set-Location native
-    $env:Path = "$env:USERPROFILE\.cargo\bin;$env:Path"
-    npx @tauri-apps/cli build --debug
+    Set-Location native; $env:Path = "$env:USERPROFILE\.cargo\bin;$env:Path"; npx @tauri-apps/cli build --debug
 
 # --- Test ---
 
@@ -45,13 +43,13 @@ test-cov:
 # Run ruff (Python) + biome (webapp)
 check:
     uv run ruff check .
-    cd web_sota && npx @biomejs/biome ci .
+    cd web_sota; npx @biomejs/biome ci .
 
 # Auto-fix lint issues
 fix:
     uv run ruff check . --fix
     uv run ruff format .
-    cd web_sota && npx @biomejs/biome check --write .
+    cd web_sota; npx @biomejs/biome check --write .
 
 # --- Podman ---
 
@@ -61,7 +59,7 @@ run:
 
 # Start webapp in dev mode
 webapp-dev:
-    cd web_sota && npm run dev
+    cd web_sota; npm run dev
 
 # Build Podman image
 podman-build:
