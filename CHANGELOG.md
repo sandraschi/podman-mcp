@@ -1,5 +1,12 @@
 # Changelog
 
+## v3.5.1 — 2026-09-13
+
+- **Dashboard**: fix false "Podman is not installed" when the CLI works but the engine/machine is down (empty `message` + misleading fallback text).
+- **Backend**: classify Podman failures (`podman_missing` vs `podman_not_started` vs `podman_error`); expose `podman_error_kind` and `podman_context` on `/api/dashboard`.
+- **Windows**: discover `podman.exe` under `%LOCALAPPDATA%\Programs\Podman` when not on PATH; fleet start sets `PODMAN_CMD` in `fleet-start.config.ps1`.
+- **Tools**: error responses now include `message` for web/API consumers.
+
 ## v3.5.0 — 2026-07-26
 
 - **Dashboard overhaul**: rootless mode detection badge, daemonless architecture highlights, 4 categorized error states with step-by-step fix instructions (backend down, Podman missing, machine not started, generic error)

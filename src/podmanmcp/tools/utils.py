@@ -21,6 +21,7 @@ def _error_response(
     resp: dict[str, Any] = {
         "success": False,
         "error": error,
+        "message": error,
         "error_type": error_type,
     }
     if suggestions:

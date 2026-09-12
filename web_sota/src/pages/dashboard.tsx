@@ -29,10 +29,17 @@ interface ImageItem {
   created?: string;
 }
 
+type PodmanErrorKind =
+  | "podman_missing"
+  | "podman_not_started"
+  | "podman_error"
+  | "unknown";
+
 interface DashboardData {
   containers: ContainerItem[];
   containers_status?: string;
   containers_message?: string;
+  podman_error_kind?: PodmanErrorKind;
   system_info: SystemInfo | null;
   system_status?: string;
   disk_summary?: {
@@ -71,15 +78,34 @@ export function Dashboard() {
       const json = await res.json();
       setData(json);
       if (json.containers_status === "error" || json.system_status === "error") {
-        const msg = json.containers_message || "Podman CLI/Machine not available";
+        const msg =
+          json.containers_message ||
+          (json.system_status === "error"
+            ? "Podman engine is not reachable (CLI installed but machine or connection may be down)."
+            : "Podman request failed.");
         setError(msg);
-        const lower = msg.toLowerCase();
-        if (lower.includes("not available") || lower.includes("not found") || lower.includes("executable")) {
-          setErrorType("podman_missing");
-        } else if (lower.includes("machine") && (lower.includes("not running") || lower.includes("stopped"))) {
-          setErrorType("podman_not_started");
+        const kind = json.podman_error_kind as PodmanErrorKind | undefined;
+        if (kind === "podman_missing" || kind === "podman_not_started" || kind === "podman_error") {
+          setErrorType(kind);
         } else {
-          setErrorType("podman_error");
+          const lower = msg.toLowerCase();
+          if (
+            lower.includes("executable") ||
+            lower.includes("not recognized") ||
+            (lower.includes("not found") && !lower.includes("connect"))
+          ) {
+            setErrorType("podman_missing");
+          } else if (
+            lower.includes("cannot connect") ||
+            lower.includes("unable to connect") ||
+            lower.includes("machine") ||
+            lower.includes("socket") ||
+            lower.includes("refused")
+          ) {
+            setErrorType("podman_not_started");
+          } else {
+            setErrorType("podman_error");
+          }
         }
       } else {
         setError(null);

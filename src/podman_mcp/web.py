@@ -272,6 +272,15 @@ def setup_webapp(app: FastAPI, mcp_app: FastMCP):
     @app.get("/api/dashboard")
     async def api_dashboard():
         try:
+            from podmanmcp.podman_context import (
+                classify_podman_error,
+                get_podman_status,
+                refresh_podman_connection,
+            )
+
+            refresh_podman_connection()
+            ctx = get_podman_status()
+
             containers_res = await manage_containers(operation="list")
             images_res = await manage_images(operation="list")
             status_res = await manage_system(operation="status")
@@ -297,11 +306,34 @@ def setup_webapp(app: FastAPI, mcp_app: FastMCP):
                 "cpu": {"cores": 0},
             }
 
+            def _tool_message(res: dict) -> str:
+                if res.get("success"):
+                    return str(res.get("message") or "")
+                return str(res.get("message") or res.get("error") or "")
+
+            containers_message = _tool_message(containers_res)
+            podman_error_kind = containers_res.get("error_kind")
+            if not podman_error_kind and (
+                not containers_res.get("success")
+                or not status_res.get("success")
+                or not images_res.get("success")
+            ):
+                podman_error_kind = classify_podman_error(
+                    containers_message or _tool_message(status_res) or _tool_message(images_res)
+                )
+
             log_activity("tool_call", "dashboard aggregate (web API)")
             return {
                 "containers": containers_list,
                 "containers_status": "success" if containers_res.get("success") else "error",
-                "containers_message": containers_res.get("message", ""),
+                "containers_message": containers_message,
+                "podman_error_kind": podman_error_kind,
+                "podman_context": {
+                    "available": ctx.get("podman_available"),
+                    "version": ctx.get("version"),
+                    "cmd_base": ctx.get("cmd_base"),
+                    "error": ctx.get("error"),
+                },
                 "pods": pods_list,
                 "pods_status": "success" if pods_res.get("success") else "error",
                 "system_info": sys_info,
@@ -485,7 +517,7 @@ def setup_webapp(app: FastAPI, mcp_app: FastMCP):
                     try:
                         data = _json.loads(line)
                         yield data.get("message", {}).get("content", "")
-                    except:
+                    except Exception:
                         pass
 
     async def _stream_lmstudio(client, endpoint, model, messages):
@@ -505,7 +537,7 @@ def setup_webapp(app: FastAPI, mcp_app: FastMCP):
                     try:
                         data = _json.loads(chunk)
                         yield data["choices"][0].get("delta", {}).get("content", "")
-                    except:
+                    except Exception:
                         pass
 
     @app.get("/api/v1/diagnostics")
@@ -519,7 +551,7 @@ def setup_webapp(app: FastAPI, mcp_app: FastMCP):
             mem = psutil.virtual_memory().percent
             try:
                 disk = psutil.disk_usage("/").percent
-            except:
+            except Exception:
                 disk = 0
         except ImportError:
             cpu = mem = disk = 0

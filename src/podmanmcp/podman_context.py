@@ -8,6 +8,7 @@ import shlex
 import shutil
 import subprocess
 import sys
+from pathlib import Path
 from collections.abc import Callable
 from functools import wraps
 from typing import Any, TypeVar, cast
@@ -22,6 +23,72 @@ podman_error: str | None = None
 podman_cmd_base: list[str] = ["podman"]
 
 F = TypeVar("F", bound=Callable[..., Any])
+
+
+def _windows_podman_exe_candidates() -> list[Path]:
+    """Well-known Podman Desktop / winget install locations on Windows."""
+    local = os.environ.get("LOCALAPPDATA", "")
+    program_files = os.environ.get("ProgramFiles", "")
+    candidates = [
+        Path(local) / "Programs" / "Podman" / "podman.exe",
+        Path(local) / "Red Hat" / "Podman" / "podman.exe",
+        Path(program_files) / "Red Hat" / "Podman" / "podman.exe",
+    ]
+    return [p for p in candidates if p.is_file()]
+
+
+def classify_podman_error(message: str | None) -> str:
+    """Classify Podman failures for the web dashboard (not for MCP tool routing)."""
+    lower = (message or "").lower()
+    if not lower:
+        return "unknown"
+    if any(
+        token in lower
+        for token in (
+            "executable",
+            "not recognized",
+            "enoent",
+            "no such file",
+            "is not installed",
+        )
+    ):
+        return "podman_missing"
+    if "not found" in lower and "connect" not in lower:
+        return "podman_missing"
+    if any(
+        token in lower
+        for token in (
+            "cannot connect",
+            "unable to connect",
+            "connect to podman",
+            "podman socket",
+            "machine init",
+            "machine start",
+            "machine not",
+            "not in running",
+            "actively refused",
+            "dead network",
+            "pipe instances are busy",
+        )
+    ):
+        return "podman_not_started"
+    if "not available" in lower and "cli" in lower:
+        return "podman_not_started"
+    return "podman_error"
+
+
+def _probe_podman_cmd(cmd: list[str]) -> bool:
+    try:
+        res = subprocess.run(
+            [*cmd, "--version"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+            creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0,
+        )
+        return res.returncode == 0
+    except Exception:
+        return False
 
 
 def get_podman_command() -> list[str]:
@@ -40,6 +107,13 @@ def get_podman_command() -> list[str]:
     if shutil.which("podman"):
         log.info("Found native Windows podman in PATH")
         return ["podman"]
+
+    if sys.platform == "win32":
+        for exe in _windows_podman_exe_candidates():
+            cmd = [str(exe)]
+            if _probe_podman_cmd(cmd):
+                log.info("Found Podman outside PATH", path=str(exe))
+                return cmd
 
     # Check if wsl is available and podman works inside it
     if shutil.which("wsl"):
@@ -60,6 +134,11 @@ def get_podman_command() -> list[str]:
 
     log.warning("Podman executable not found in PATH or WSL. Defaulting to 'podman'")
     return ["podman"]
+
+
+def refresh_podman_connection() -> bool:
+    """Re-run CLI discovery (e.g. after Podman Desktop install updates PATH)."""
+    return initialize_podman_connection()
 
 
 def initialize_podman_connection() -> bool:
@@ -159,9 +238,12 @@ def check_podman_available[F: Callable[..., Any]](func: F) -> F:
     @wraps(func)
     async def wrapper(*args: Any, **kwargs: Any) -> Any:
         if not podman_available:
+            err = f"Podman CLI is not available: {podman_error}"
             return {
                 "success": False,
-                "error": f"Podman CLI is not available: {podman_error}",
+                "error": err,
+                "message": err,
+                "error_kind": classify_podman_error(err),
                 "suggestions": [
                     "Ensure Podman is installed (winget install RedHat.Podman)",
                     "Initialize and start your Podman machine: 'podman machine init' followed by 'podman machine start'",
