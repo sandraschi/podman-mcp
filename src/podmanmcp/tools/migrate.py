@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import os
@@ -110,7 +111,7 @@ async def manage_migrate(
             if "dockerfile:" in converted.lower():
                 converted = converted.replace(
                     "dockerfile:", "dockerfile:"
-                )  # no change needed — podman-compose reads dockerfile key
+                )  # no change needed - podman-compose reads dockerfile key
             dest = output_path or source_path.replace(".yml", "-podman.yml").replace(".yaml", "-podman.yaml")
             with open(dest, "w", encoding="utf-8") as f:
                 f.write(converted)
@@ -232,14 +233,14 @@ async def manage_migrate(
             ok = not any(i["severity"] == "error" for i in issues)
             return {
                 "success": True,
-                "message": f"Compatibility check: {'PASSED' if ok else 'FAILED'} — {len(issues)} issues found.",
+                "message": f"Compatibility check: {'PASSED' if ok else 'FAILED'} - {len(issues)} issues found.",
                 "data": {"compatible": ok, "issues": issues, "total": len(issues)},
             }
 
         elif operation == "dockerfile_to_containerfile":
             if os.path.isfile(source_path) and source_path.lower().endswith("dockerfile"):
                 dest = output_path or os.path.join(os.path.dirname(source_path), "Containerfile")
-                shutil.copy2(source_path, dest)
+                await asyncio.to_thread(shutil.copy2, source_path, dest)
                 return {
                     "success": True,
                     "message": f"Dockerfile copied to Containerfile at {dest}.",
@@ -250,7 +251,7 @@ async def manage_migrate(
                 if not os.path.isfile(dockerfile):
                     return _error_response(f"No Dockerfile found in {source_path}", "validation_failed")
                 dest = output_path or os.path.join(source_path, "Containerfile")
-                shutil.copy2(dockerfile, dest)
+                await asyncio.to_thread(shutil.copy2, dockerfile, dest)
                 return {
                     "success": True,
                     "message": f"Dockerfile copied to Containerfile at {dest}.",
