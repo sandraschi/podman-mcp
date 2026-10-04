@@ -131,13 +131,19 @@ class PodmanWatchdog:
 
 
 if __name__ == "__main__":
+    import os
     import sys
+    from pathlib import Path
+
+    # Absolute log path: a bare filename lands in the host's cwd (BUG-063)
+    log_dir = Path(os.environ.get("LOCALAPPDATA") or Path.home()) / "podman-mcp" / "logs"
+    log_dir.mkdir(parents=True, exist_ok=True)
 
     # Configure logging
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        handlers=[logging.StreamHandler(sys.stdout), logging.FileHandler("podman_watchdog.log")],
+        handlers=[logging.StreamHandler(sys.stdout), logging.FileHandler(log_dir / "podman_watchdog.log")],
     )
 
     # Start the watchdog
