@@ -16,7 +16,7 @@ import sys
 import time
 from pathlib import Path
 
-from podmanmcp.logging_config import configure_logging, logger
+from podmanmcp.logging_config import LOG_FILE, configure_logging, logger
 from podmanmcp.mcp_instance import get_mcp
 
 # Add the parent directory to the Python path
@@ -26,9 +26,7 @@ if src_dir not in sys.path:
 
 # Configure logging with JSON format and proper stream handling
 # Disable JSON for RPC logs to prevent parsing issues
-configure_logging(
-    enable_console=True, json_format=True, log_file=str(Path("logs/podmanmcp.log")), disable_json_for_rpc=True
-)
+configure_logging(enable_console=True, json_format=True, log_file=str(LOG_FILE), disable_json_for_rpc=True)
 
 # Global flag to control the main event loop
 should_exit = False

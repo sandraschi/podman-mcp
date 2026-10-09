@@ -54,9 +54,10 @@ if os.environ.get("ENABLE_LOGURU", "false").lower() == "true":
 # Local imports
 from .loki_handler import add_loki_handler
 
-# Configure the log directory
-LOG_DIR = Path("logs")
-LOG_DIR.mkdir(exist_ok=True)
+# Configure the log directory. Absolute, never cwd-relative: Claude Desktop
+# spawns stdio servers with cwd=C:\Windows\System32 (BUG-063).
+LOG_DIR = Path(os.environ.get("LOCALAPPDATA") or Path.home()) / "podman-mcp" / "logs"
+LOG_DIR.mkdir(parents=True, exist_ok=True)
 LOG_FILE = LOG_DIR / "podmanmcp.log"
 
 # Default log level based on environment - set to WARNING to reduce noise

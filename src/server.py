@@ -10,13 +10,12 @@ import logging
 import sys
 import warnings
 from contextlib import asynccontextmanager
-from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from podman_mcp.web import setup_webapp
-from podmanmcp.logging_config import configure_logging, logger
+from podmanmcp.logging_config import LOG_FILE, configure_logging, logger
 from podmanmcp.mcp_instance import get_mcp
 
 # Initialize MCP + tools before web routes import podmanmcp tool modules
@@ -36,7 +35,7 @@ for logger_name in ["fastmcp", "mcp", "uvicorn", "httpx", "httpcore", "h11", "as
 configure_logging(
     enable_console=True,
     json_format=False,
-    log_file=str(Path("logs/podmanmcp.log")),
+    log_file=str(LOG_FILE),
     level="WARNING",
 )
 
@@ -162,10 +161,6 @@ async def run_mcp_server():
 def main():
     """Initialize and run the Podman MCP server with all tools."""
     try:
-        # Create logs directory if it doesn't exist
-        logs_dir = Path("logs")
-        logs_dir.mkdir(exist_ok=True)
-
         # Create and run the event loop
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)

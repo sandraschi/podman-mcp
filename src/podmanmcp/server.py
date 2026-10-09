@@ -11,7 +11,6 @@ import logging
 import sys
 import threading
 import warnings
-from pathlib import Path
 
 # Suppress Pydantic deprecation warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning, module="pydantic")
@@ -20,15 +19,13 @@ warnings.filterwarnings("ignore", category=UserWarning, module="pydantic")
 # Import local modules
 from podmanmcp.tools.assorted_crap import SafeJSONEncoder, warn_with_log
 
-from podmanmcp.logging_config import configure_logging, logger
+from podmanmcp.logging_config import LOG_FILE, configure_logging, logger
 from podmanmcp.mcp_instance import get_mcp
 from podmanmcp.transport import run_server
 
 # Configure logging with JSON format and proper stream handling
 # Disable JSON for RPC logs to prevent parsing issues
-configure_logging(
-    enable_console=True, json_format=True, log_file=str(Path("logs/podmanmcp.log")), disable_json_for_rpc=True
-)
+configure_logging(enable_console=True, json_format=True, log_file=str(LOG_FILE), disable_json_for_rpc=True)
 
 # Get logger for this module
 server_logger = logging.getLogger("podmanmcp.server")
