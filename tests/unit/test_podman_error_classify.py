@@ -8,10 +8,7 @@ def test_classify_missing_executable():
 
 
 def test_classify_machine_not_running():
-    msg = (
-        "Failed to list containers: Cannot connect to Podman. "
-        "try `podman machine start`"
-    )
+    msg = "Failed to list containers: Cannot connect to Podman. try `podman machine start`"
     assert classify_podman_error(msg) == "podman_not_started"
 
 

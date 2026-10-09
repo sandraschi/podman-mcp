@@ -8,9 +8,9 @@ import shlex
 import shutil
 import subprocess
 import sys
-from pathlib import Path
 from collections.abc import Callable
 from functools import wraps
+from pathlib import Path
 from typing import Any, TypeVar, cast
 
 import structlog

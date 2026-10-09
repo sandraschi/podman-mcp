@@ -80,7 +80,7 @@ def mcp_server_url():
 def is_server_available(url):
     """Check if MCP server is available."""
     try:
-        response = requests.get(f"{url}/health")
+        response = requests.get(f"{url}/health", timeout=5)
         return response.status_code == 200
     except requests.RequestException:
         return False
@@ -153,7 +153,7 @@ if os.environ.get("MOCK_MODE", "0") == "1" or os.environ.get("SKIP_PODMAN_TESTS"
                 },
                 "NetworkSettings": {
                     "IPAddress": "172.17.0.2",
-                    "Ports": {"80/tcp": [{"HostIp": "0.0.0.0", "HostPort": "8080"}]},
+                    "Ports": {"80/tcp": [{"HostIp": "0.0.0.0", "HostPort": "8080"}]},  # noqa: S104 - fake inspect data, nothing binds
                     "Networks": {
                         "bridge": {
                             "IPAMConfig": None,

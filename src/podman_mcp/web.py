@@ -314,9 +314,7 @@ def setup_webapp(app: FastAPI, mcp_app: FastMCP):
             containers_message = _tool_message(containers_res)
             podman_error_kind = containers_res.get("error_kind")
             if not podman_error_kind and (
-                not containers_res.get("success")
-                or not status_res.get("success")
-                or not images_res.get("success")
+                not containers_res.get("success") or not status_res.get("success") or not images_res.get("success")
             ):
                 podman_error_kind = classify_podman_error(
                     containers_message or _tool_message(status_res) or _tool_message(images_res)

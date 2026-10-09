@@ -124,4 +124,4 @@ class PodmanTestHelper:
         import random
         import string
 
-        return "".join(random.choices(string.ascii_lowercase + string.digits, k=8))
+        return "".join(random.choices(string.ascii_lowercase + string.digits, k=8))  # noqa: S311 - test resource name, not crypto
