@@ -12,7 +12,7 @@ import subprocess
 from typing import Any
 
 import podman
-from podman.errors import PodmanException
+from podman.errors import PodmanError
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +36,7 @@ class PodmanWatchdog:
         """Get a Podman client with error handling."""
         try:
             return podman.from_env()
-        except PodmanException as e:
+        except PodmanError as e:
             logger.error(f"Failed to initialize Podman client: {e}")
             raise
 

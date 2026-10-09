@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Any
 
 from podman import PodmanClient
-from podman.errors import PodmanException
+from podman.errors import PodmanError
 
 # Configure logger
 logger = logging.getLogger(__name__)
@@ -29,7 +29,7 @@ def get_podman_client() -> PodmanClient:
     """
     try:
         return PodmanClient.from_env()
-    except PodmanException as e:
+    except PodmanError as e:
         logger.error("Failed to initialize Podman client: %s", e)
         raise RuntimeError(
             "Podman is not installed or the Podman CLI is not running. "

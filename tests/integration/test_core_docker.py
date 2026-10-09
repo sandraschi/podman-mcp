@@ -40,7 +40,7 @@ async def test_podman_operations():
 
         return True, "✅ All Podman operations completed successfully"
 
-    except podman.errors.PodmanException as e:
+    except (podman.errors.PodmanError, podman.errors.APIError) as e:
         return False, f"❌ Podman error: {e!s}"
     except Exception as e:
         return False, f"❌ Unexpected error: {e!s}"

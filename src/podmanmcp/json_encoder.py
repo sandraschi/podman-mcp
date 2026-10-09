@@ -44,18 +44,19 @@ class PodmanJSONEncoder(json.JSONEncoder):
 
         # Try to import and handle Podman SDK types
         try:
-            import podman.models.containers
-            import podman.models.images
-            import podman.models.networks
-            import podman.models.volumes
+            import podman.domain.containers
+            import podman.domain.images
+            import podman.domain.networks
+            import podman.domain.volumes
 
-            # Register Podman container handlers
+            # Register Podman container handlers (podman-py keeps its models in
+            # podman.domain; podman.models is the docker-py layout)
             self._type_handlers.update(
                 {
-                    podman.models.containers.Container: self._serialize_podman_container,
-                    podman.models.images.Image: self._serialize_podman_image,
-                    podman.models.networks.Network: self._serialize_podman_network,
-                    podman.models.volumes.Volume: self._serialize_podman_volume,
+                    podman.domain.containers.Container: self._serialize_podman_container,
+                    podman.domain.images.Image: self._serialize_podman_image,
+                    podman.domain.networks.Network: self._serialize_podman_network,
+                    podman.domain.volumes.Volume: self._serialize_podman_volume,
                 }
             )
 
