@@ -17,10 +17,9 @@ warnings.filterwarnings("ignore", category=DeprecationWarning, module="pydantic"
 warnings.filterwarnings("ignore", category=UserWarning, module="pydantic")
 
 # Import local modules
-from podmanmcp.tools.assorted_crap import SafeJSONEncoder, warn_with_log
-
 from podmanmcp.logging_config import LOG_FILE, configure_logging, logger
 from podmanmcp.mcp_instance import get_mcp
+from podmanmcp.tools.assorted_crap import SafeJSONEncoder, warn_with_log
 from podmanmcp.transport import run_server
 
 # Configure logging with JSON format and proper stream handling
@@ -38,33 +37,10 @@ mcp = get_mcp()
 # Override the default JSON encoder
 mcp.json_encoder = SafeJSONEncoder()
 
-# Log that we're using the singleton instance
+# Log that we're using the singleton instance. Tools are registered inside
+# get_mcp() via tool_registration.register_all_tools; the per-module imports
+# copied from docker-mcp named modules podman never had (tools.desktop, ...).
 logger.info("Using singleton FastMCP instance from mcp_instance.py")
-
-# Import tool modules to register them with @mcp.tool decorators
-try:
-    # Import tool modules - these will be registered via @mcp.tool decorators
-    # Import desktop tools
-    from podmanmcp.tools.desktop import (  # noqa: F401
-        podman_daemon_recover,
-        podman_daemon_restart,
-        podman_desktop_status,
-        podman_desktop_update,
-    )
-    from podmanmcp.tools.networks import network_management as _nm  # noqa: F401
-    from podmanmcp.tools.volumes import volume_management as _vm  # noqa: F401
-    from podmanmcp.tools.workflows import workflow_management as _wm  # noqa: F401
-
-    from podmanmcp.tools import agentic_container_workflow as _aw  # noqa: F401
-    from podmanmcp.tools.containers import list_containers as _lc  # noqa: F401
-    from podmanmcp.tools.system import system_management as _sm  # noqa: F401
-
-    # Log successful imports
-    logger.info("Successfully imported all tool modules including Podman Machine tools and SEP-1577 agentic workflows")
-
-except ImportError as e:
-    logger.error(f"Failed to import tool modules: {e}", exc_info=True)
-    sys.exit(1)
 
 
 def run_fastapi_server():

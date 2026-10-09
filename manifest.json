@@ -18,12 +18,12 @@
   "keywords": ["podman", "containers", "mcp", "fastmcp", "devops"],
   "server": {
     "type": "python",
-    "entry_point": "src/server.py",
+    "entry_point": "src/podmanmcp/server.py",
     "mcp_config": {
-      "command": "python",
-      "args": ["src/server.py"],
+      "command": "uv",
+      "args": ["run", "--directory", "${__dirname}", "python", "-m", "podmanmcp.server"],
       "env": {
-        "PYTHONPATH": "${PWD}/src",
+        "PYTHONPATH": "${__dirname}/src",
         "PYTHONUNBUFFERED": "1"
       }
     }
