@@ -6,10 +6,21 @@ import asyncio
 import sys
 
 import podman
+import pytest
 
 
-async def test_podman_operations():
-    """Test basic Podman operations."""
+def test_podman_operations():
+    """Exercise ping/version/list against a live Podman API; skip when unreachable."""
+    try:
+        podman.from_env().ping()
+    except Exception as e:
+        pytest.skip(f"Podman API not reachable via podman.from_env(): {e!s}")
+    success, message = asyncio.run(check_podman_operations())
+    assert success, message
+
+
+async def check_podman_operations():
+    """Run basic Podman operations; return (success, message)."""
     try:
         # Initialize Podman client
         client = podman.from_env()
@@ -50,7 +61,7 @@ if __name__ == "__main__":
     print("Testing core Podman functionality...")
 
     try:
-        success, message = asyncio.run(test_podman_operations())
+        success, message = asyncio.run(check_podman_operations())
         print(f"\n{message}")
 
         if success:

@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 
 import podman
+import pytest
 
 # Add the project root to the Python path
 sys.path.append(str(Path(__file__).parent.parent))
@@ -17,8 +18,14 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(level
 logger = logging.getLogger(__name__)
 
 
-async def test_podman_connection():
-    """Test the Podman connection handling."""
+def test_podman_connection():
+    """Ping the Podman API; skip (not pass vacuously) when it is unreachable."""
+    if not asyncio.run(check_podman_connection()):
+        pytest.skip("Podman API not reachable via podman.from_env()")
+
+
+async def check_podman_connection():
+    """Return True if the Podman API answers a ping."""
     try:
         # Try to connect to Podman
         client = podman.from_env()
@@ -33,7 +40,7 @@ async def test_podman_connection():
 if __name__ == "__main__":
     # Run the test
     print("Testing Podman connection...")
-    connected = asyncio.run(test_podman_connection())
+    connected = asyncio.run(check_podman_connection())
 
     if connected:
         print("\nTo test Podman down scenarios:")

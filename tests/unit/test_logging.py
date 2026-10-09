@@ -187,7 +187,7 @@ def test_json_logging():
 
     # Test exception
     try:
-# 1 / 0  # intentional
+        1 / 0  # noqa: B018 - intentional, exercises logger.exception
     except Exception:
         logger.exception("An error occurred")
 

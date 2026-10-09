@@ -25,6 +25,7 @@ class MockMCPRequestHandler(BaseHTTPRequestHandler):
                 "/health": self.handle_health_check,
                 "/containers": self.handle_list_containers,
                 "/containers/.*/logs": self.handle_container_logs,
+                "/containers/.*": self.handle_inspect_container,
                 "/images": self.handle_list_images,
             },
             "POST": {
@@ -38,12 +39,8 @@ class MockMCPRequestHandler(BaseHTTPRequestHandler):
                 "/images/.*": self.handle_remove_image,
             },
         }
-        # In-memory storage for mock data
-        self.containers = {}
-        self.images = [
-            {"Id": "sha256:abc123", "RepoTags": ["alpine:latest"], "Size": 12345678},
-            {"Id": "sha256:def456", "RepoTags": ["ubuntu:20.04"], "Size": 98765432},
-        ]
+        # Mock data lives on the HTTPServer (self.server), not here: http.server
+        # builds a new handler per request, so handler attributes reset each call.
         super().__init__(*args, **kwargs)
 
     def log_message(self, format, *args):
@@ -121,13 +118,13 @@ class MockMCPRequestHandler(BaseHTTPRequestHandler):
 
     def handle_list_containers(self):
         """Handle listing containers."""
-        all_containers = list(self.containers.values())
+        all_containers = list(self.server.containers.values())
         self._send_json_response(200, all_containers)
 
     def handle_container_logs(self):
         """Handle getting container logs."""
         container_id = self._get_path_param("/containers/.*/logs", self.path)
-        container = self.containers.get(container_id)
+        container = self.server.containers.get(container_id)
 
         if not container:
             self._send_json_response(404, {"message": f"No such container: {container_id}", "error": "Not Found"})
@@ -140,10 +137,21 @@ class MockMCPRequestHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(logs.encode())
 
+    def handle_inspect_container(self):
+        """Handle inspecting a single container."""
+        container_id = self._get_path_param("/containers/.*", self.path)
+        container = self.server.containers.get(container_id)
+
+        if not container:
+            self._send_json_response(404, {"message": f"No such container: {container_id}", "error": "Not Found"})
+            return
+
+        self._send_json_response(200, container)
+
     def handle_start_container(self):
         """Handle starting a container."""
         container_id = self._get_path_param("/containers/.*/start", self.path)
-        container = self.containers.get(container_id)
+        container = self.server.containers.get(container_id)
 
         if not container:
             self._send_json_response(404, {"message": f"No such container: {container_id}", "error": "Not Found"})
@@ -156,7 +164,7 @@ class MockMCPRequestHandler(BaseHTTPRequestHandler):
     def handle_stop_container(self):
         """Handle stopping a container."""
         container_id = self._get_path_param("/containers/.*/stop", self.path)
-        container = self.containers.get(container_id)
+        container = self.server.containers.get(container_id)
 
         if not container:
             self._send_json_response(404, {"message": f"No such container: {container_id}", "error": "Not Found"})
@@ -176,15 +184,15 @@ class MockMCPRequestHandler(BaseHTTPRequestHandler):
         """Handle removing a container."""
         container_id = self._get_path_param("/containers/.*", self.path)
 
-        if container_id in self.containers:
-            del self.containers[container_id]
+        if container_id in self.server.containers:
+            del self.server.containers[container_id]
             self._send_json_response(204, {})
         else:
             self._send_json_response(404, {"message": f"No such container: {container_id}", "error": "Not Found"})
 
     def handle_list_images(self):
         """Handle listing images."""
-        self._send_json_response(200, self.images)
+        self._send_json_response(200, self.server.images)
 
     def handle_pull_image(self):
         """Handle pulling an image."""
@@ -201,7 +209,7 @@ class MockMCPRequestHandler(BaseHTTPRequestHandler):
             "RepoTags": [image_name],
             "Size": 12345678,  # Default size
         }
-        self.images.append(new_image)
+        self.server.images.append(new_image)
 
         self._send_json_response(200, new_image)
 
@@ -210,9 +218,9 @@ class MockMCPRequestHandler(BaseHTTPRequestHandler):
         image_id = self._get_path_param("/images/.*", self.path)
 
         # Find and remove the image
-        for i, img in enumerate(self.images):
+        for i, img in enumerate(self.server.images):
             if img["Id"] == image_id or any(tag.startswith(image_id) for tag in img.get("RepoTags", [])):
-                self.images.pop(i)
+                self.server.images.pop(i)
                 self._send_json_response(200, {"message": "Image removed"})
                 return
 
@@ -230,13 +238,16 @@ class MockMCPServer:
 
     def start(self):
         """Start the mock server in a separate thread."""
-
-        def run():
-            self.server = HTTPServer((self.host, self.port), MockMCPRequestHandler)
-            logger.info(f"Starting mock MCP server on {self.host}:{self.port}")
-            self.server.serve_forever()
-
-        self.thread = threading.Thread(target=run, daemon=True)
+        # Bind before returning so callers can reach self.server (and its state)
+        # immediately; binding inside the thread left self.server None.
+        self.server = HTTPServer((self.host, self.port), MockMCPRequestHandler)
+        self.server.containers = {}
+        self.server.images = [
+            {"Id": "sha256:abc123", "RepoTags": ["alpine:latest"], "Size": 12345678},
+            {"Id": "sha256:def456", "RepoTags": ["ubuntu:20.04"], "Size": 98765432},
+        ]
+        logger.info(f"Starting mock MCP server on {self.host}:{self.port}")
+        self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
         self.thread.start()
 
     def stop(self):
