@@ -44,12 +44,16 @@ logger.info("Using singleton FastMCP instance from mcp_instance.py")
 
 
 def run_fastapi_server():
-    """Run FastAPI server in a separate thread"""
+    """Run the dashboard web bridge in a separate thread.
+
+    Serves the same app start.ps1 runs (customization.server:app, the CLI-backed
+    podman_mcp.web routes). The former podmanmcp.api.app was a docker-mcp copy built
+    on podman-py, which cannot reach Podman on Windows (AF_UNIX / os.getuid).
+    """
     import uvicorn
 
-    from podmanmcp.api.app import create_app
+    from customization.server import app
 
-    app = create_app()
     logger.info("Starting FastAPI server on port 11113...")
     uvicorn.run(app, host="127.0.0.1", port=11113, log_level="warning")
 
