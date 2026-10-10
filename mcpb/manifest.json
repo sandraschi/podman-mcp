@@ -1,7 +1,7 @@
 {
   "manifest_version": "0.2",
   "name": "podman-mcp",
-  "version": "3.5.0",
+  "version": "3.5.2",
   "description": "FastMCP 3.5 Podman control plane — containers, Machine health, sampling, prefab UI, agentic workflows, compose config, image compare",
   "long_description": "FastMCP 3.5 MCP server for Podman containers, pods, images, networks, volumes, compose, Podman Machine recovery, and a React web dashboard (11112/11113).",
   "author": {

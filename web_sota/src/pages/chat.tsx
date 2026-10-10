@@ -14,8 +14,8 @@ import {
   XCircle,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { getLlmProviders, type LlmProvider } from "@/common/api";
 import { API_BASE } from "@/lib/api";
+import { useLlmStore } from "@/store/llm";
 
 type Role = "user" | "assistant";
 type Personality = { id: string; name: string; prompt: string };
@@ -69,11 +69,6 @@ const PERSONALITIES: Personality[] = [
   { id: "custom", name: "Custom", prompt: "" },
 ];
 
-const DEFAULT_ENDPOINTS: Record<string, string> = {
-  ollama: "http://127.0.0.1:11434",
-  lmstudio: "http://127.0.0.1:1234",
-};
-
 function fmt(ts: number) {
   return new Date(ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
@@ -89,26 +84,29 @@ export function Chat() {
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
   const [abort, setAbort] = useState<AbortController | null>(null);
-  const [personality, setPersonality] = useState(
-    () => localStorage.getItem("podman-chat-persona") || "expert",
-  );
-  const [provider, setProvider] = useState(
-    () => localStorage.getItem("podman-chat-provider") || "ollama",
-  );
-  const [model, setModel] = useState(() => localStorage.getItem("podman-chat-model") || "llama3.2");
-  const [customPrompt, setCustomPrompt] = useState(
-    () => localStorage.getItem("podman-chat-custom-prompt") || "",
-  );
-  const [endpoint, setEndpoint] = useState(
-    () => localStorage.getItem("podman-chat-endpoint") || "http://127.0.0.1:11434",
-  );
+  const [personality, setPersonality] = [
+    useLlmStore((s) => s.personality),
+    useLlmStore((s) => s.setPersonality),
+  ];
+  const [provider] = [useLlmStore((s) => s.provider)];
+  const [model] = [useLlmStore((s) => s.model)];
+  const [customPrompt, setCustomPrompt] = [
+    useLlmStore((s) => s.customPrompt),
+    useLlmStore((s) => s.setCustomPrompt),
+  ];
+  const [endpoint, setEndpoint] = [
+    useLlmStore((s) => s.endpoint),
+    useLlmStore((s) => s.setEndpoint),
+  ];
   const [showSettings, setShowSettings] = useState(false);
-  const [providers, setProviders] = useState<LlmProvider[]>([]);
-  const [loadingProviders, setLoadingProviders] = useState(false);
+  const [providers] = [useLlmStore((s) => s.providers)];
+  const [loadingProviders] = [useLlmStore((s) => s.loadingProviders)];
+  const [gpuDetected] = [useLlmStore((s) => s.gpuDetected)];
   const [toolMode, setToolMode] = useState(
     () => localStorage.getItem("podman-chat-tool-mode") === "true",
   );
   const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set());
+  const [chatSkills, setChatSkills] = useState<string[]>([]);
   const bottomRef = useRef<HTMLDivElement>(null);
   const persona =
     personality === "custom"
@@ -129,76 +127,37 @@ export function Chat() {
 
   useEffect(() => {
     if (!showSettings) return;
+    useLlmStore.getState().ensureProviders();
+  }, [showSettings]);
+
+  useEffect(() => {
+    useLlmStore.getState().detectGpu();
     let cancelled = false;
     (async () => {
-      setLoadingProviders(true);
       try {
-        const list = await getLlmProviders(false);
-        if (cancelled) return;
-        setProviders(list);
-        if (list.length > 0) {
-          const match = list.find((p) => p.type === provider);
-          if (match) {
-            if (!model || !match.models.includes(model)) {
-              if (match.models[0]) setModel(match.models[0]);
-            }
-            setEndpoint(match.base_url);
-          }
-        }
+        const res = await fetch(`${API_BASE}/api/skills`);
+        if (!res.ok || cancelled) return;
+        const data = await res.json();
+        if (!cancelled) setChatSkills(data.skills ?? []);
       } catch {
-        /* non-fatal */
-      } finally {
-        if (!cancelled) setLoadingProviders(false);
+        /* skills stay empty: chat works without them */
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [showSettings, provider, model]);
+  }, []);
 
   const refreshProviders = useCallback(async () => {
-    setLoadingProviders(true);
-    try {
-      const list = await getLlmProviders(true);
-      setProviders(list);
-      if (list.length > 0) {
-        const match = list.find((p) => p.type === provider);
-        if (match) {
-          setEndpoint(match.base_url);
-          if (match.models[0]) setModel(match.models[0]);
-        }
-      }
-    } catch {
-      /* non-fatal */
-    } finally {
-      setLoadingProviders(false);
-    }
-  }, [provider]);
+    await useLlmStore.getState().refreshProviders();
+  }, []);
 
-  const onProviderChange = useCallback(
-    (next: string) => {
-      setProvider(next);
-      localStorage.setItem("podman-chat-provider", next);
-      const match = providers.find((p) => p.type === next);
-      if (match) {
-        setEndpoint(match.base_url);
-        localStorage.setItem("podman-chat-endpoint", match.base_url);
-        if (match.models[0]) {
-          setModel(match.models[0]);
-          localStorage.setItem("podman-chat-model", match.models[0]);
-        }
-      } else {
-        const fallback = DEFAULT_ENDPOINTS[next] ?? DEFAULT_ENDPOINTS.ollama;
-        setEndpoint(fallback);
-        localStorage.setItem("podman-chat-endpoint", fallback);
-      }
-    },
-    [providers],
-  );
+  const onProviderChange = useCallback((next: string) => {
+    useLlmStore.getState().setProvider(next);
+  }, []);
 
   const onModelChange = useCallback((next: string) => {
-    setModel(next);
-    localStorage.setItem("podman-chat-model", next);
+    useLlmStore.getState().setModel(next);
   }, []);
 
   const activeProvider = providers.find((p) => p.type === provider);
@@ -352,11 +311,16 @@ export function Chat() {
     "Show me container logs for nginx",
     "Check Podman CLI health",
     "Clean up unused images and volumes",
+    "Back up the pgdata volume before upgrading",
+    "Is my compose file Podman-compatible?",
   ];
 
   return (
     <div className="flex h-[calc(100vh-8rem)] flex-col space-y-3" data-testid="chat-page">
-      <div className="flex items-center justify-between flex-wrap gap-2">
+      <div
+        className="flex items-center justify-between flex-wrap gap-2"
+        data-testid="chat-controls"
+      >
         <div className="flex items-center gap-3">
           <h2 className="text-2xl font-bold tracking-tight text-white">AI Command</h2>
           <div
@@ -379,6 +343,10 @@ export function Chat() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <span data-testid="chat-llm-status" className="text-xs text-slate-500 font-mono">
+            {provider}/{model}
+            {gpuDetected ? " · GPU" : ""}
+          </span>
           <button
             type="button"
             onClick={toggleToolMode}
@@ -521,14 +489,29 @@ export function Chat() {
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto space-y-3 pr-1">
+      <div className="flex-1 overflow-y-auto space-y-3 pr-1" data-testid="chat-messages">
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center space-y-4">
             <Bot className="h-12 w-12 text-slate-700" />
             <p className="text-slate-500 text-sm max-w-md">
               Ask me about Podman — containers, images, volumes, compose, or daemon issues.
             </p>
-            <div className="flex flex-wrap gap-2 justify-center">
+            {chatSkills.length > 0 && (
+              <div className="flex flex-wrap gap-2 justify-center" data-testid="skill-chips">
+                {chatSkills.map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => setInput(`Use the ${s} skill: `)}
+                    title={`Prompt template: ${s}`}
+                    className="px-3 py-1.5 text-xs bg-purple-900/30 hover:bg-purple-800/40 text-purple-200 rounded-lg border border-purple-700/40"
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            )}
+            <div className="flex flex-wrap gap-2 justify-center" data-testid="example-prompts">
               {suggested.map((p) => (
                 <button
                   key={p}

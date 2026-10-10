@@ -8,6 +8,15 @@ cd web_sota
 npm install
 ```
 
+## Package manager (npm, deliberate)
+
+The webapp uses npm + `package-lock.json` (fleet-start engine Kind
+`vite-npm`, `npm ci` in CI). There is intentionally no `bun.lock`:
+migrating to bun would require changing the launcher contract
+(`fleet-start.config.ps1` PackageManager), `start.ps1` fallbacks, justfile
+recipes, and CI in lockstep. Revisit only as a coordinated launcher change,
+not a drive-by.
+
 ## Run
 
 | Command | Purpose |
