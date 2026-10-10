@@ -40,15 +40,17 @@ def validate_json_schema(data: Any, schema: dict) -> bool:
         JSONValidationError: If validation fails
     """
     try:
-        from jsonschema import ValidationError, validate
+        from jsonschema import validate  # pyright: ignore[reportMissingImports]  # optional dep
 
         validate(instance=data, schema=schema)
         return True
     except ImportError:
         logger.warning("jsonschema not installed, skipping schema validation")
         return True
-    except ValidationError as e:
-        raise JSONValidationError(f"JSON validation error: {e}") from e
+    except Exception as e:
+        if e.__class__.__name__ == "ValidationError":
+            raise JSONValidationError(f"JSON validation error: {e}") from e
+        raise
 
 
 def safe_json_loads(

@@ -23,7 +23,7 @@ class GrafanaManager:
     DEFAULT_USER = "admin"
     DEFAULT_PASSWORD = os.environ.get("GRAFANA_PASSWORD", "admin")  # Should be changed after first login
 
-    def __init__(self, podman_client=None):
+    def __init__(self, podman_client: Any = None):
         """Initialize the Grafana manager.
 
         Args:
@@ -141,7 +141,7 @@ class GrafanaManager:
                 status = await self.is_grafana_running()
                 if status["status"] != "running":
                     return {"error": "Grafana is not running"}
-                host = status["host"]
+                host = str(status["host"])
 
             if not auth:
                 auth = (self.DEFAULT_USER, self.DEFAULT_PASSWORD)

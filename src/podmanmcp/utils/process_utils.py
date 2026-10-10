@@ -9,18 +9,14 @@ import logging
 import os
 import subprocess
 from pathlib import Path
+from typing import Literal
 
 from .json_utils import JSONValidationError, safe_json_loads
 
 logger = logging.getLogger(__name__)
 
-# Type variable for command output
-try:
-    from typing import Literal
-
-    OutputType = Literal["text", "json", "lines"]
-except ImportError:
-    OutputType = str  # Fallback for Python <3.8
+# Command output types (requires-python >=3.12, Literal always available)
+OutputType = Literal["text", "json", "lines"]
 
 
 class ProcessError(subprocess.SubprocessError):
@@ -53,7 +49,7 @@ def run_command(
     cmd: str | list[str],
     capture_output: bool = True,
     check: bool = True,
-    output_type: OutputType = "text",
+    output_type: OutputType | None = "text",
     cwd: str | Path | None = None,
     env: dict[str, str] | None = None,
     timeout: float | None = None,
@@ -178,7 +174,7 @@ def run_podman_command(
     output_type: OutputType | None = "json",
     podman_host: str | None = None,
     **kwargs,
-) -> str | dict | list | bytes:
+) -> str | dict | list | bytes | tuple[int, str, str]:
     """
     Run a podman command with improved error handling and output processing.
 
