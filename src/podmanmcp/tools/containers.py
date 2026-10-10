@@ -14,8 +14,10 @@ from podmanmcp.tools.utils import _error_response
 
 logger = logging.getLogger("podmanmcp")
 
+_DESTRUCTIVE = {"destructive": True}
 
-@mcp.tool()
+
+@mcp.tool(annotations=_DESTRUCTIVE)
 @check_podman_available
 async def manage_containers(
     operation: Annotated[
@@ -150,7 +152,7 @@ async def manage_containers(
                 try:
                     containers = json.loads(res["stdout"])
                 except Exception as parse_err:
-                    logger.warning("Failed to parse containers JSON, trying fallback", error=str(parse_err))
+                    logger.warning("Failed to parse containers JSON, trying fallback: %s", parse_err)
 
             # Map Podman JSON fields to standard representation
             mapped_containers = []
@@ -178,6 +180,7 @@ async def manage_containers(
             }
 
         elif operation == "inspect":
+            assert container_id is not None  # validated above
             res = await run_podman_command(["inspect", container_id])
             if not res["success"]:
                 return _error_response(
@@ -190,8 +193,8 @@ async def manage_containers(
                     inspect_list = json.loads(res["stdout"])
                     if inspect_list:
                         inspect_data = inspect_list[0]
-                except Exception:
-                    pass
+                except Exception as exc:
+                    logger.debug("Container inspect output was not JSON, returning empty data: %s", exc)
 
             return {
                 "success": True,
@@ -200,6 +203,7 @@ async def manage_containers(
             }
 
         elif operation == "start":
+            assert container_id is not None  # validated above
             res = await run_podman_command(["start", container_id])
             if not res["success"]:
                 return _error_response(
@@ -212,6 +216,7 @@ async def manage_containers(
             }
 
         elif operation == "stop":
+            assert container_id is not None  # validated above
             res = await run_podman_command(["stop", container_id])
             if not res["success"]:
                 return _error_response(f"Failed to stop container '{container_id}': {res.get('stderr')}", "stop_failed")
@@ -222,6 +227,7 @@ async def manage_containers(
             }
 
         elif operation == "restart":
+            assert container_id is not None  # validated above
             res = await run_podman_command(["restart", container_id])
             if not res["success"]:
                 return _error_response(
@@ -234,6 +240,7 @@ async def manage_containers(
             }
 
         elif operation == "delete":
+            assert container_id is not None  # validated above
             res = await run_podman_command(["rm", "-f", container_id])
             if not res["success"]:
                 return _error_response(
@@ -272,7 +279,6 @@ async def manage_containers(
                 return _error_response(
                     f"Failed to run container with image '{image}': {res.get('stderr')}", "create_failed"
                 )
-
             new_id = res["stdout"].strip()
             return {
                 "success": True,
@@ -281,6 +287,7 @@ async def manage_containers(
             }
 
         elif operation == "logs":
+            assert container_id is not None  # validated above
             log_args = ["logs"]
             if tail_lines:
                 log_args += ["--tail", str(tail_lines)]
@@ -301,6 +308,7 @@ async def manage_containers(
             }
 
         elif operation == "stats":
+            assert container_id is not None  # validated above
             res = await run_podman_command(["stats", "--no-stream", "--format", "json", container_id])
             if not res["success"]:
                 return _error_response(
@@ -315,8 +323,8 @@ async def manage_containers(
                         stats_data = stats_json[0]
                     else:
                         stats_data = stats_json
-                except Exception:
-                    pass
+                except Exception as exc:
+                    logger.debug("Container stats output was not JSON, returning empty data: %s", exc)
             return {
                 "success": True,
                 "message": f"Retrieved runtime metrics for container '{container_id}'.",
@@ -324,6 +332,7 @@ async def manage_containers(
             }
 
         elif operation == "exec":
+            assert container_id is not None  # validated above
             if not exec_cmd:
                 return _error_response("Operation 'exec' requires 'exec_cmd' parameter.", "validation_failed")
             cmd = exec_cmd
@@ -339,6 +348,7 @@ async def manage_containers(
             }
 
         elif operation == "files":
+            assert container_id is not None  # validated above
             if not file_op:
                 return _error_response(
                     "Operation 'files' requires 'file_op' parameter (list/read/write).", "validation_failed"
@@ -382,7 +392,8 @@ async def manage_containers(
                 )
                 if not res["success"]:
                     return _error_response(
-                        f"Failed to write file in container '{container_id}': {res.get('stderr')}", "files_write_failed"
+                        f"Failed to write file in container '{container_id}': {res.get('stderr')}",
+                        "files_write_failed",
                     )
                 return {
                     "success": True,
@@ -393,6 +404,7 @@ async def manage_containers(
                 return _error_response(f"Unsupported file operation: {file_op}", "unsupported_operation")
 
         elif operation == "resources":
+            assert container_id is not None  # validated above
             if not resource_op:
                 return _error_response(
                     "Operation 'resources' requires 'resource_op' parameter (get/set).", "validation_failed"
@@ -416,8 +428,8 @@ async def manage_containers(
                         si = info[0].get("State", {})
                         limits["restart_count"] = si.get("RestartCount", 0)
                         limits["oom_killed"] = si.get("OOMKilled", False)
-                except Exception:
-                    pass
+                except Exception as exc:
+                    logger.debug("Resource inspect parse failed, returning partial limits: %s", exc)
                 return {
                     "success": True,
                     "message": f"Resource limits retrieved for container '{container_id}'.",

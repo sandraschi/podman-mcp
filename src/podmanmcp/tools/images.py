@@ -14,8 +14,10 @@ from podmanmcp.tools.utils import _error_response
 
 logger = logging.getLogger("podmanmcp")
 
+_DESTRUCTIVE = {"destructive": True}
 
-@mcp.tool()
+
+@mcp.tool(annotations=_DESTRUCTIVE)
 @check_podman_available
 async def manage_images(
     operation: Annotated[
@@ -84,7 +86,7 @@ async def manage_images(
                 try:
                     images = json.loads(res["stdout"])
                 except Exception as parse_err:
-                    logger.warning("Failed to parse images JSON", error=str(parse_err))
+                    logger.warning("Failed to parse images JSON: %s", parse_err)
 
             # Map fields for compatibility
             mapped_images = []
@@ -111,6 +113,7 @@ async def manage_images(
             }
 
         elif operation == "inspect":
+            assert image_name is not None  # validated above
             res = await run_podman_command(["inspect", image_name])
             if not res["success"]:
                 return _error_response(f"Failed to inspect image '{image_name}': {res.get('stderr')}", "inspect_failed")
@@ -121,8 +124,8 @@ async def manage_images(
                     inspect_list = json.loads(res["stdout"])
                     if inspect_list:
                         inspect_data = inspect_list[0]
-                except Exception:
-                    pass
+                except Exception as exc:
+                    logger.debug("Image inspect output was not JSON, returning empty data: %s", exc)
             return {
                 "success": True,
                 "message": f"Successfully inspected image '{image_name}'.",
@@ -130,6 +133,7 @@ async def manage_images(
             }
 
         elif operation == "pull":
+            assert image_name is not None  # validated above
             # Pulling is a mutating operation that can take time, timeout is set to 120s here
             res = await run_podman_command(["pull", image_name], timeout=120.0)
             if not res["success"]:
@@ -141,6 +145,7 @@ async def manage_images(
             }
 
         elif operation == "delete":
+            assert image_name is not None  # validated above
             res = await run_podman_command(["rmi", "-f", image_name])
             if not res["success"]:
                 return _error_response(f"Failed to delete image '{image_name}': {res.get('stderr')}", "delete_failed")
@@ -167,6 +172,7 @@ async def manage_images(
             }
 
         elif operation == "search":
+            assert search_term is not None  # validated above
             res = await run_podman_command(["search", "--format", "json", search_term])
             if not res["success"]:
                 return _error_response(
@@ -177,8 +183,8 @@ async def manage_images(
             if res["stdout"].strip():
                 try:
                     results = json.loads(res["stdout"])
-                except Exception:
-                    pass
+                except Exception as exc:
+                    logger.debug("Registry search output was not JSON, returning empty results: %s", exc)
             return {
                 "success": True,
                 "message": f"Found {len(results)} registry matches for '{search_term}'.",

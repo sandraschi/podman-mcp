@@ -82,6 +82,7 @@ async def manage_backup(
             return _error_response("Operation 'load_volume' requires 'name'.", "validation_failed")
 
         if operation == "save_image":
+            assert name is not None and output_path is not None  # validated above
             res = await run_podman_command(["save", "-o", output_path, name], timeout=120.0)
             if not res["success"]:
                 return _error_response(f"Failed to save image '{name}': {res.get('stderr')}", "save_image_failed")
@@ -93,6 +94,7 @@ async def manage_backup(
             }
 
         elif operation == "load_image":
+            assert output_path is not None  # validated above
             args = ["load", "-i", output_path]
             res = await run_podman_command(args, timeout=120.0)
             if not res["success"]:
@@ -109,6 +111,7 @@ async def manage_backup(
             }
 
         elif operation == "export_container":
+            assert name is not None and output_path is not None  # validated above
             res = await run_podman_command(["export", "-o", output_path, name], timeout=120.0)
             if not res["success"]:
                 return _error_response(f"Failed to export container '{name}': {res.get('stderr')}", "export_failed")
@@ -120,6 +123,7 @@ async def manage_backup(
             }
 
         elif operation == "import_container":
+            assert output_path is not None  # validated above
             args = ["import", output_path]
             if name:
                 args += ["--change", f"CMD {name}"]
@@ -137,6 +141,7 @@ async def manage_backup(
             }
 
         elif operation == "save_volume":
+            assert name is not None and output_path is not None  # validated above
             backup_file = output_path if output_path.endswith(".tar.gz") else f"{output_path}.tar.gz"
             res = await run_podman_command(
                 [
@@ -166,6 +171,7 @@ async def manage_backup(
             }
 
         elif operation == "load_volume":
+            assert name is not None and output_path is not None  # validated above
             if not os.path.isfile(output_path):
                 return _error_response(f"Backup file not found: {output_path}", "validation_failed")
             await run_podman_command(["volume", "create", name])
@@ -184,6 +190,7 @@ async def manage_backup(
                     f"/backup/{os.path.basename(abs_backup)}",
                     "-C",
                     "/data",
+                    ".",
                 ],
                 timeout=120.0,
             )

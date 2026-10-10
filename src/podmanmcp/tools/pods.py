@@ -14,8 +14,10 @@ from podmanmcp.tools.utils import _error_response
 
 logger = logging.getLogger("podmanmcp")
 
+_DESTRUCTIVE = {"destructive": True}
 
-@mcp.tool()
+
+@mcp.tool(annotations=_DESTRUCTIVE)
 @check_podman_available
 async def manage_pods(
     operation: Annotated[
@@ -78,7 +80,7 @@ async def manage_pods(
                 try:
                     pods = json.loads(res["stdout"])
                 except Exception as parse_err:
-                    logger.warning("Failed to parse pods JSON", error=str(parse_err))
+                    logger.warning("Failed to parse pods JSON: %s", parse_err)
 
             return {
                 "success": True,
@@ -88,6 +90,7 @@ async def manage_pods(
             }
 
         elif operation == "inspect":
+            assert pod_id is not None  # validated above
             res = await run_podman_command(["pod", "inspect", pod_id])
             if not res["success"]:
                 return _error_response(f"Failed to inspect pod '{pod_id}': {res.get('stderr')}", "inspect_failed")
@@ -98,8 +101,8 @@ async def manage_pods(
                     inspect_list = json.loads(res["stdout"])
                     if inspect_list:
                         inspect_data = inspect_list
-                except Exception:
-                    pass
+                except Exception as exc:
+                    logger.debug("Pod inspect output was not JSON, returning empty data: %s", exc)
             return {
                 "success": True,
                 "message": f"Successfully inspected pod '{pod_id}'.",
@@ -126,6 +129,7 @@ async def manage_pods(
             }
 
         elif operation == "start":
+            assert pod_id is not None  # validated above
             res = await run_podman_command(["pod", "start", pod_id])
             if not res["success"]:
                 return _error_response(f"Failed to start pod '{pod_id}': {res.get('stderr')}", "start_failed")
@@ -136,6 +140,7 @@ async def manage_pods(
             }
 
         elif operation == "stop":
+            assert pod_id is not None  # validated above
             res = await run_podman_command(["pod", "stop", pod_id])
             if not res["success"]:
                 return _error_response(f"Failed to stop pod '{pod_id}': {res.get('stderr')}", "stop_failed")
@@ -146,6 +151,7 @@ async def manage_pods(
             }
 
         elif operation == "delete":
+            assert pod_id is not None  # validated above
             res = await run_podman_command(["pod", "rm", "-f", pod_id])
             if not res["success"]:
                 return _error_response(f"Failed to delete pod '{pod_id}': {res.get('stderr')}", "delete_failed")

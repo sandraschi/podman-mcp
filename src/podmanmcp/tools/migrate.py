@@ -17,8 +17,10 @@ from podmanmcp.tools.utils import _error_response
 
 logger = logging.getLogger("podmanmcp")
 
+_DESTRUCTIVE = {"destructive": True}
 
-@mcp.tool()
+
+@mcp.tool(annotations=_DESTRUCTIVE)
 @check_podman_available
 async def manage_migrate(
     operation: Annotated[
@@ -94,6 +96,7 @@ async def manage_migrate(
             return _error_response("Operation 'migrate_image' requires 'image_name'.", "validation_failed")
 
         if operation == "docker_compose_to_podman":
+            assert source_path is not None  # validated above
             if not os.path.isfile(source_path):
                 return _error_response(f"Source file not found: {source_path}", "validation_failed")
             with open(source_path, encoding="utf-8") as f:
@@ -127,6 +130,7 @@ async def manage_migrate(
             }
 
         elif operation == "podman_compose_to_docker":
+            assert source_path is not None  # validated above
             if not os.path.isfile(source_path):
                 return _error_response(f"Source file not found: {source_path}", "validation_failed")
             with open(source_path, encoding="utf-8") as f:
@@ -156,17 +160,18 @@ async def manage_migrate(
                             if sz < 100_000:
                                 findings["compose_files"].append({"path": fp, "size": sz})
                         if f.lower() == "dockerfile" or f.startswith("Dockerfile."):
-                            findings["dockerfiles"].append(fp)
-                    if len(str(root)) > 200:
-                        break
+                            findings["dockerfiles"].append({"path": fp})
+                        # Cap the scan breadth for responsiveness
+                        if len(str(root)) > 200:
+                            break
             res = await run_podman_command(["images", "--format", "json"])
             if res["success"] and res["stdout"].strip():
                 try:
                     images = json.loads(res["stdout"])
                     for img in images:
                         findings["images"].append(img.get("Names", img.get("Id", "unknown")))
-                except Exception:
-                    pass
+                except Exception as exc:
+                    logger.debug("Artifact scan images output was not JSON, skipping image list: %s", exc)
             return {
                 "success": True,
                 "message": f"Scanned: {len(findings['compose_files'])} compose files, {len(findings['dockerfiles'])} Dockerfiles, {len(findings['images'])} images.",
@@ -174,6 +179,7 @@ async def manage_migrate(
             }
 
         elif operation == "migrate_image":
+            assert image_name is not None  # validated above
             pull_res = await run_podman_command(["pull", image_name], timeout=180.0)
             if not pull_res["success"]:
                 return _error_response(
@@ -189,6 +195,7 @@ async def manage_migrate(
             }
 
         elif operation == "compatibility_check":
+            assert source_path is not None  # validated above
             if not os.path.isfile(source_path):
                 return _error_response(f"File not found: {source_path}", "validation_failed")
             with open(source_path, encoding="utf-8") as f:
@@ -238,6 +245,7 @@ async def manage_migrate(
             }
 
         elif operation == "dockerfile_to_containerfile":
+            assert source_path is not None  # validated above
             if os.path.isfile(source_path) and source_path.lower().endswith("dockerfile"):
                 dest = output_path or os.path.join(os.path.dirname(source_path), "Containerfile")
                 await asyncio.to_thread(shutil.copy2, source_path, dest)
@@ -270,9 +278,7 @@ async def manage_migrate(
                 ["save", "--format", "docker-archive", "-o", dest, image_name], timeout=180.0
             )
             if not res["success"]:
-                return _error_response(
-                    f"Failed to export image '{image_name}' for Docker: {res.get('stderr')}", "export_failed"
-                )
+                return _error_response(f"Failed to export image '{image_name}': {res.get('stderr')}", "export_failed")
             sz = os.path.getsize(dest) if os.path.isfile(dest) else 0
             return {
                 "success": True,
@@ -288,4 +294,4 @@ async def manage_migrate(
             return _error_response(f"Unsupported operation: {operation}", "unsupported_operation")
 
     except Exception as e:
-        return _error_response(f"Migration operation failed: {e!s}", "runtime_error")
+        return _error_response(f"Migrate operation failed: {e!s}", "runtime_error")
