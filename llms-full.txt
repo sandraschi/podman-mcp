@@ -210,6 +210,7 @@ Resources: `resource://podman-mcp/skills`, `resource://podman-mcp/capabilities`.
 | GET | `/api/llm/onboarding` | Starter facts + recommended path |
 | POST | `/api/llm/chat` | Chat completion (alias of `/api/chat`) |
 | POST | `/api/shutdown` | Orderly exit (~500 ms, for launcher restarts) |
+| POST | `/api/tools/call` | Execute a runnable tool: {"tool", "params"} (9 manage_*; cards/shutdown refused) |
 | GET | `/api/events?since=24h&limit=200` | Engine event inbox (newest-first; `engine: down` + message when unreachable) |
 | POST | `/api/podman/recover` | Restart Podman machine |
 | GET | `/api/capabilities` | Page flags, tool_count, LLM providers |

@@ -1,17 +1,21 @@
 import json
 import logging
 import os
-from collections.abc import AsyncGenerator
-from typing import Literal
+from collections.abc import AsyncGenerator, Callable
+from typing import Any, Literal
 
 import httpx
 from fastapi import Body, Depends, FastAPI, HTTPException, Query
 from fastapi.responses import Response, StreamingResponse
 from fastmcp import FastMCP
 
+from podmanmcp.tools.agentic import manage_agentic
+from podmanmcp.tools.backup import manage_backup
 from podmanmcp.tools.compose import manage_compose
 from podmanmcp.tools.containers import manage_containers
+from podmanmcp.tools.health import manage_health
 from podmanmcp.tools.images import manage_images
+from podmanmcp.tools.migrate import manage_migrate
 from podmanmcp.tools.pods import manage_pods
 from podmanmcp.tools.system import manage_system
 
@@ -113,6 +117,44 @@ def setup_webapp(app: FastAPI, mcp_app: FastMCP):
     async def list_tools():
         tools = await mcp_app.list_tools()
         return {"tools": [t.name for t in tools]}
+
+    # Tools directly runnable from the web Tools page (safe defaults; explicit
+    # params in the request body win). Cards/prefabs and shutdown are excluded:
+    # cards are not plain JSON and shutdown must never be one misclick away.
+    _RUNNABLE_TOOLS: dict[str, tuple[Callable[..., Any], str]] = {
+        "manage_containers": (manage_containers, "list"),
+        "manage_pods": (manage_pods, "list"),
+        "manage_images": (manage_images, "list"),
+        "manage_system": (manage_system, "status"),
+        "manage_compose": (manage_compose, "ps"),
+        "manage_backup": (manage_backup, "list_backups"),
+        "manage_migrate": (manage_migrate, "compatibility_check"),
+        "manage_agentic": (manage_agentic, "health_sweep"),
+        "manage_health": (manage_health, "system_overview"),
+    }
+
+    @app.post("/api/tools/call")
+    async def tools_call(payload: dict = Body(...)):
+        tool = str(payload.get("tool", ""))
+        params = payload.get("params") or {}
+        if not isinstance(params, dict):
+            return {"success": False, "error": "params must be a JSON object"}
+        entry = _RUNNABLE_TOOLS.get(tool)
+        if entry is None:
+            return {"success": False, "error": f"Tool '{tool}' is not directly runnable"}
+        fn, default_op = entry
+        args: dict[str, Any] = {"operation": default_op, **params}
+        try:
+            result = await fn(**args)
+        except TypeError as exc:
+            return {"success": False, "tool": tool, "error": f"Bad params: {exc}"}
+        except Exception as exc:
+            logger.exception("tools/call %s failed", tool)
+            return {"success": False, "tool": tool, "error": str(exc)}
+        log_activity("tool_call", f"{tool} (web Tools page)")
+        if isinstance(result, dict):
+            return result
+        return {"success": True, "tool": tool, "data": result}
 
     @app.get("/api/llm/providers")
     async def llm_providers(refresh: bool = Query(False)):

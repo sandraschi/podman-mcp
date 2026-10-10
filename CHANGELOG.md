@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- **Tools page actually executes**: the Execute button was dead (no handler). New `POST /api/tools/call` (9 manage_* allowlist, default ops, JSON params, TypeError-safe) + per-card params input, output panel, running state; 4 bridge tests.
+- **Dashboard**: CPU cores + memory now come from engine info instead of hardcoded stubs.
+- **PODMAN_CMD fix**: platform-aware shlex split (POSIX mode ate Windows backslashes); regression tests.
+
 ## v3.5.3 — 2026-10-10
 
 - **Chat conformance (P3/P5)**: skill-first composition (`GET /api/skills` returns `system_preprompt`, prepended to the personality prompt); export switched to `.txt` + disabled-when-empty; clear disabled-when-empty; `llm-provider-select`/`llm-model-select` testids; fleet `llms-full.txt` keys with one-time migration; vLLM `:8000` probe; GPU opportunity hint.
