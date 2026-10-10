@@ -97,7 +97,14 @@ def get_podman_command() -> list[str]:
     env_cmd = os.getenv("PODMAN_CMD")
     if env_cmd:
         try:
-            cmd = shlex.split(env_cmd)
+            # posix=False on Windows: POSIX shlex treats backslashes as escapes
+            # and would eat every "\" in "C:\...\podman.exe" (WinError 2 ghost).
+            # Non-POSIX mode keeps grouping quotes in the token, so strip them.
+            parts = shlex.split(env_cmd, posix=os.name != "nt")
+            cmd = [
+                p[1:-1] if len(p) >= 2 and p.startswith('"') and p.endswith('"') else p
+                for p in parts
+            ]
             log.info("Using Podman command from PODMAN_CMD env", command=cmd)
             return cmd
         except Exception as e:
