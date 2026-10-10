@@ -2,15 +2,15 @@
 
 ## Web dashboard: HTTP 500
 
-1. Confirm the API bridge is running on **10807** (backend PowerShell window from `start.ps1`).
+1. Confirm the API bridge is running on **11113** (backend PowerShell window from `start.ps1`).
 2. Check `customization.server` exports `app` (`from server import web_app as app`).
-3. `curl http://127.0.0.1:10807/api/health` should return `healthy`.
+3. `curl http://127.0.0.1:11113/api/health` should return `healthy`.
 
 ## MCPB install fails
 
-- Rebuild from repo root: `just mcpb-pack` or `npx @anthropic-ai/mcpb pack . dist/podman-mcp-v3.3.0.mcpb`.
-- Use root `manifest.json` and `assets/prompts/` (there is no `mcpb/` subfolder).
-- Ensure `fastmcp>=3.3` in your environment matches `manifest.json`.
+- Rebuild from repo root: `just mcpb-pack` (fleet shim → `dist/podman-mcp.mcpb` + `install.ps1`).
+- Pack root is `mcpb/` (`mcpb/manifest.json`, staged `mcpb/src/`); prompts sync from `assets/prompts/`.
+- Ensure `fastmcp>=3.4.4,<4` in your environment matches `manifest.json`.
 
 ## Sampling / agentic workflow unavailable
 
@@ -28,3 +28,11 @@
 
 - Verify Podman Machine is running: `podman ps` in a terminal.
 - On Windows, socket default: `//./pipe/podman_engine`.
+
+## Playwright e2e fails in its own loader (ERR_MODULE_NOT_FOUND)
+
+- Observed with Playwright 1.51 + Node 24: the failure is inside
+  `playwright/lib/transform/esmLoader.js`, not in repo code. CI pins Node 22
+  (`setup-node@v4`), where the suite runs. Locally, either use Node 22 or
+  wait for the Playwright bump. `tsc --noEmit` + `biome ci` still gate the
+  spec file statically.
