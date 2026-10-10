@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
-import { API_BASE } from "@/lib/api";
+import { AlertCircle, Loader2, Package } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, AlertCircle, Package } from "lucide-react";
+import { API_BASE } from "@/lib/api";
 
 interface PodItem {
   Id: string;
@@ -21,14 +21,14 @@ export function Pods() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchPods = async () => {
+  const fetchPods = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch(`${API_BASE}/api/pods`);
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || `HTTP ${res.status}`);
       // Podman pods might be inside data.pods or data.data.pods
-      const podsList = data.pods || (data.data && data.data.pods) || [];
+      const podsList = data.pods ?? data.data?.pods ?? [];
       setPods(podsList);
       setError(null);
     } catch (e) {
@@ -37,11 +37,11 @@ export function Pods() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchPods();
-  }, []);
+  }, [fetchPods]);
 
   if (loading && pods.length === 0) {
     return (
@@ -59,6 +59,7 @@ export function Pods() {
           <p className="text-slate-400">List and manage Podman pods (shared container groups)</p>
         </div>
         <button
+          type="button"
           onClick={fetchPods}
           disabled={loading}
           className="rounded-md bg-slate-800 px-3 py-2 text-sm font-medium text-slate-200 hover:bg-slate-700 disabled:opacity-50 transition-colors"
@@ -82,7 +83,9 @@ export function Pods() {
         </CardHeader>
         <CardContent>
           {pods.length === 0 && !error ? (
-            <p className="text-slate-500 py-8 text-center">No pods found. Create a pod using 'podman pod create' or chat.</p>
+            <p className="text-slate-500 py-8 text-center">
+              No pods found. Create a pod using 'podman pod create' or chat.
+            </p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -98,12 +101,17 @@ export function Pods() {
                 <tbody>
                   {pods.map((p) => {
                     const statusLower = String(p.Status).toLowerCase();
-                    const stateColor = 
-                      statusLower === "running" ? "text-emerald-400" :
-                      statusLower === "degraded" ? "text-amber-400" :
-                      "text-slate-500";
+                    const stateColor =
+                      statusLower === "running"
+                        ? "text-emerald-400"
+                        : statusLower === "degraded"
+                          ? "text-amber-400"
+                          : "text-slate-500";
                     return (
-                      <tr key={p.Id} className="border-b border-slate-800/80 text-slate-200 hover:bg-slate-900/20 transition-colors">
+                      <tr
+                        key={p.Id}
+                        className="border-b border-slate-800/80 text-slate-200 hover:bg-slate-900/20 transition-colors"
+                      >
                         <td className="py-3 pr-4">
                           <span className="flex items-center gap-2">
                             <Package className="h-4 w-4 text-blue-400 shrink-0" />
@@ -111,13 +119,15 @@ export function Pods() {
                           </span>
                         </td>
                         <td className="py-3 pr-4 font-mono text-slate-400">{p.Id.slice(0, 12)}</td>
-                        <td className="py-3 pr-4">{p.NumberOfContainers || (p.Containers ? p.Containers.length : 0)}</td>
                         <td className="py-3 pr-4">
-                          <span className={stateColor}>
-                            {p.Status}
-                          </span>
+                          {p.NumberOfContainers || (p.Containers ? p.Containers.length : 0)}
                         </td>
-                        <td className="py-3 text-slate-400">{new Date(p.Created).toLocaleString() || "—"}</td>
+                        <td className="py-3 pr-4">
+                          <span className={stateColor}>{p.Status}</span>
+                        </td>
+                        <td className="py-3 text-slate-400">
+                          {new Date(p.Created).toLocaleString() || "—"}
+                        </td>
                       </tr>
                     );
                   })}

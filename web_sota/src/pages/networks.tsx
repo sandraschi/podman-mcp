@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
-import { API_BASE } from "@/lib/api";
+import { AlertCircle, Loader2, Network, Plus, Trash2 } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, AlertCircle, Network, Plus, Trash2 } from "lucide-react";
+import { API_BASE } from "@/lib/api";
 
 interface NetworkItem {
   name: string;
@@ -20,20 +20,23 @@ export function Networks() {
   const [newNetworkName, setNewNetworkName] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  const fetchNetworks = async () => {
+  const fetchNetworks = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch(`${API_BASE}/api/networks`);
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || `HTTP ${res.status}`);
-      
+
       // Parse list of networks. Podman returns lowercase fields or capital fields in JSON
-      const rawNets = data.networks || (data.data && data.data.networks) || [];
+      const rawNets = data.networks ?? data.data?.networks ?? [];
+      // biome-ignore lint/suspicious/noExplicitAny: raw Podman JSON uses version-dependent casing; normalized below
       const normalizedNets: NetworkItem[] = rawNets.map((n: any) => ({
         name: n.name || n.Name || "",
         id: n.id || n.Id || "",
         driver: n.driver || n.Driver || "",
-        subnets: n.subnets || n.Subnets || (n.plugins ? n.plugins.map((p: any) => p.ipam) : []) || [],
+        subnets:
+          // biome-ignore lint/suspicious/noExplicitAny: plugin JSON shape varies; stringified below
+          n.subnets || n.Subnets || (n.plugins ? n.plugins.map((p: any) => p.ipam) : []) || [],
       }));
 
       setNetworks(normalizedNets);
@@ -44,12 +47,12 @@ export function Networks() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const handleCreateNetwork = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newNetworkName.trim()) return;
-    
+
     setSubmitting(true);
     try {
       const res = await fetch(`${API_BASE}/api/networks/create`, {
@@ -58,7 +61,8 @@ export function Networks() {
         body: JSON.stringify({ name: newNetworkName }),
       });
       const data = await res.json();
-      if (!res.ok || !data.success) throw new Error(data.error || data.message || "Failed to create network");
+      if (!res.ok || !data.success)
+        throw new Error(data.error || data.message || "Failed to create network");
       setNewNetworkName("");
       await fetchNetworks();
     } catch (e) {
@@ -78,7 +82,8 @@ export function Networks() {
         body: JSON.stringify({ name }),
       });
       const data = await res.json();
-      if (!res.ok || !data.success) throw new Error(data.error || data.message || "Failed to delete network");
+      if (!res.ok || !data.success)
+        throw new Error(data.error || data.message || "Failed to delete network");
       await fetchNetworks();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to delete network");
@@ -87,7 +92,7 @@ export function Networks() {
 
   useEffect(() => {
     fetchNetworks();
-  }, []);
+  }, [fetchNetworks]);
 
   if (loading && networks.length === 0) {
     return (
@@ -105,6 +110,7 @@ export function Networks() {
           <p className="text-slate-400">List and manage container bridge networks</p>
         </div>
         <button
+          type="button"
           onClick={fetchNetworks}
           disabled={loading}
           className="rounded-md bg-slate-800 px-3 py-2 text-sm font-medium text-slate-200 hover:bg-slate-700 disabled:opacity-50 transition-colors"
@@ -178,26 +184,41 @@ export function Networks() {
                   {networks.map((n) => {
                     // Extract subnet string
                     const subnetStrs = n.subnets
-                      ? n.subnets.map((s: any) => s.subnet || s.Subnet || JSON.stringify(s)).join(", ")
+                      ? n.subnets
+                          // biome-ignore lint/suspicious/noExplicitAny: subnet entries vary (string vs object); stringified below
+                          .map((s: any) => s.subnet || s.Subnet || JSON.stringify(s))
+                          .join(", ")
                       : "";
-                      
+
                     return (
-                      <tr key={n.id} className="border-b border-slate-800/80 text-slate-200 hover:bg-slate-900/20 transition-colors">
+                      <tr
+                        key={n.id}
+                        className="border-b border-slate-800/80 text-slate-200 hover:bg-slate-900/20 transition-colors"
+                      >
                         <td className="py-3 pr-4">
                           <span className="flex items-center gap-2">
                             <Network className="h-4 w-4 text-emerald-400 shrink-0" />
                             <span className="font-semibold">{n.name}</span>
                           </span>
                         </td>
-                        <td className="py-3 pr-4 font-mono text-slate-400 text-xs">{n.id.slice(0, 12)}</td>
+                        <td className="py-3 pr-4 font-mono text-slate-400 text-xs">
+                          {n.id.slice(0, 12)}
+                        </td>
                         <td className="py-3 pr-4 font-mono text-slate-400 text-xs">{n.driver}</td>
-                        <td className="py-3 pr-4 text-slate-400 font-mono text-xs">{subnetStrs || "—"}</td>
+                        <td className="py-3 pr-4 text-slate-400 font-mono text-xs">
+                          {subnetStrs || "—"}
+                        </td>
                         <td className="py-3 text-right">
                           <button
+                            type="button"
                             onClick={() => handleDeleteNetwork(n.name)}
                             disabled={n.name === "podman" || n.name === "default"}
                             className="p-1 rounded text-slate-400 hover:text-red-400 hover:bg-slate-800 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-slate-400 transition-all"
-                            title={n.name === "podman" || n.name === "default" ? "Cannot delete default network" : "Delete Network"}
+                            title={
+                              n.name === "podman" || n.name === "default"
+                                ? "Cannot delete default network"
+                                : "Delete Network"
+                            }
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>

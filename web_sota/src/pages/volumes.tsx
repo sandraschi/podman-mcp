@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
-import { API_BASE } from "@/lib/api";
+import { AlertCircle, Database, Loader2, Plus, Trash2 } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, AlertCircle, Database, Plus, Trash2 } from "lucide-react";
+import { API_BASE } from "@/lib/api";
 
 interface VolumeItem {
   Name: string;
@@ -17,15 +17,15 @@ export function Volumes() {
   const [newVolumeName, setNewVolumeName] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  const fetchVolumes = async () => {
+  const fetchVolumes = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch(`${API_BASE}/api/volumes`);
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || `HTTP ${res.status}`);
-      
+
       // Parse list of volumes
-      const vols = data.volumes || (data.data && data.data.volumes) || [];
+      const vols = data.volumes ?? data.data?.volumes ?? [];
       setVolumes(vols);
       setError(null);
     } catch (e) {
@@ -34,12 +34,12 @@ export function Volumes() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const handleCreateVolume = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newVolumeName.trim()) return;
-    
+
     setSubmitting(true);
     try {
       const res = await fetch(`${API_BASE}/api/volumes/create`, {
@@ -48,7 +48,8 @@ export function Volumes() {
         body: JSON.stringify({ name: newVolumeName }),
       });
       const data = await res.json();
-      if (!res.ok || !data.success) throw new Error(data.error || data.message || "Failed to create volume");
+      if (!res.ok || !data.success)
+        throw new Error(data.error || data.message || "Failed to create volume");
       setNewVolumeName("");
       await fetchVolumes();
     } catch (e) {
@@ -68,7 +69,8 @@ export function Volumes() {
         body: JSON.stringify({ name }),
       });
       const data = await res.json();
-      if (!res.ok || !data.success) throw new Error(data.error || data.message || "Failed to delete volume");
+      if (!res.ok || !data.success)
+        throw new Error(data.error || data.message || "Failed to delete volume");
       await fetchVolumes();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to delete volume");
@@ -77,7 +79,7 @@ export function Volumes() {
 
   useEffect(() => {
     fetchVolumes();
-  }, []);
+  }, [fetchVolumes]);
 
   if (loading && volumes.length === 0) {
     return (
@@ -95,6 +97,7 @@ export function Volumes() {
           <p className="text-slate-400">List and manage persistent storage volumes</p>
         </div>
         <button
+          type="button"
           onClick={fetchVolumes}
           disabled={loading}
           className="rounded-md bg-slate-800 px-3 py-2 text-sm font-medium text-slate-200 hover:bg-slate-700 disabled:opacity-50 transition-colors"
@@ -165,7 +168,10 @@ export function Volumes() {
                 </thead>
                 <tbody>
                   {volumes.map((v) => (
-                    <tr key={v.Name} className="border-b border-slate-800/80 text-slate-200 hover:bg-slate-900/20 transition-colors">
+                    <tr
+                      key={v.Name}
+                      className="border-b border-slate-800/80 text-slate-200 hover:bg-slate-900/20 transition-colors"
+                    >
                       <td className="py-3 pr-4">
                         <span className="flex items-center gap-2">
                           <Database className="h-4 w-4 text-blue-400 shrink-0" />
@@ -173,11 +179,15 @@ export function Volumes() {
                         </span>
                       </td>
                       <td className="py-3 pr-4 font-mono text-slate-400 text-xs">{v.Driver}</td>
-                      <td className="py-3 pr-4 text-slate-400 font-mono text-xs max-w-xs truncate" title={v.Mountpoint}>
+                      <td
+                        className="py-3 pr-4 text-slate-400 font-mono text-xs max-w-xs truncate"
+                        title={v.Mountpoint}
+                      >
                         {v.Mountpoint}
                       </td>
                       <td className="py-3 text-right">
                         <button
+                          type="button"
                           onClick={() => handleDeleteVolume(v.Name)}
                           className="p-1 rounded text-slate-400 hover:text-red-400 hover:bg-slate-800 transition-all"
                           title="Delete Volume"

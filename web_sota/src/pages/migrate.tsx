@@ -1,33 +1,55 @@
-import { ArrowLeftRight, FileCode, Container, Search, ShieldCheck, Download, Upload, Terminal } from "lucide-react";
+import {
+  ArrowLeftRight,
+  Container,
+  FileCode,
+  Search,
+  ShieldCheck,
+  Terminal,
+  Upload,
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const ACTIONS = [
   {
-    icon: FileCode, label: "Convert Compose", desc: "docker-compose.yml → podman-compose.yml",
+    icon: FileCode,
+    label: "Convert Compose",
+    desc: "docker-compose.yml → podman-compose.yml",
     tool: 'manage_migrate(operation="docker_compose_to_podman", source_path="<path>/docker-compose.yml")',
   },
   {
-    icon: ArrowLeftRight, label: "Convert to Docker", desc: "podman-compose.yml → docker-compose.yml",
+    icon: ArrowLeftRight,
+    label: "Convert to Docker",
+    desc: "podman-compose.yml → docker-compose.yml",
     tool: 'manage_migrate(operation="podman_compose_to_docker", source_path="<path>/podman-compose.yml")',
   },
   {
-    icon: Container, label: "Migrate Image", desc: "Pull Docker Hub image for Podman",
+    icon: Container,
+    label: "Migrate Image",
+    desc: "Pull Docker Hub image for Podman",
     tool: 'manage_migrate(operation="migrate_image", image_name="nginx:latest", new_name="nginx:podman")',
   },
   {
-    icon: Search, label: "Scan Artifacts", desc: "Find Docker artifacts to migrate",
+    icon: Search,
+    label: "Scan Artifacts",
+    desc: "Find Docker artifacts to migrate",
     tool: 'manage_migrate(operation="scan_docker_artifacts")',
   },
   {
-    icon: ShieldCheck, label: "Compatibility Check", desc: "Check if compose file works with Podman",
+    icon: ShieldCheck,
+    label: "Compatibility Check",
+    desc: "Check if compose file works with Podman",
     tool: 'manage_migrate(operation="compatibility_check", source_path="<path>/docker-compose.yml")',
   },
   {
-    icon: Upload, label: "Export for Docker", desc: "Export Podman image as Docker archive",
+    icon: Upload,
+    label: "Export for Docker",
+    desc: "Export Podman image as Docker archive",
     tool: 'manage_migrate(operation="export_for_docker", image_name="<image>")',
   },
   {
-    icon: FileCode, label: "Dockerfile → Containerfile", desc: "Copy Dockerfile to Containerfile",
+    icon: FileCode,
+    label: "Dockerfile → Containerfile",
+    desc: "Copy Dockerfile to Containerfile",
     tool: 'manage_migrate(operation="dockerfile_to_containerfile", source_path="<path>/Dockerfile")',
   },
 ];
@@ -45,9 +67,10 @@ export function MigratePage() {
           <div>
             <h3 className="text-lg font-semibold text-white">Why migrate?</h3>
             <p className="text-sm text-slate-300 mt-1">
-              Podman is a drop-in replacement for Docker with no background daemon, no root requirement,
-              and native Kubernetes pod support. Compose files, Dockerfiles, and OCI images are compatible.
-              Use the tools below or ask the AI on the Chat page to run any migration automatically.
+              Podman is a drop-in replacement for Docker with no background daemon, no root
+              requirement, and native Kubernetes pod support. Compose files, Dockerfiles, and OCI
+              images are compatible. Use the tools below or ask the AI on the Chat page to run any
+              migration automatically.
             </p>
           </div>
         </div>
@@ -66,7 +89,10 @@ export function MigratePage() {
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {ACTIONS.map((a) => (
-          <Card key={a.label} className="border-slate-800 bg-slate-950/50 hover:border-purple-800/50 transition-colors">
+          <Card
+            key={a.label}
+            className="border-slate-800 bg-slate-950/50 hover:border-purple-800/50 transition-colors"
+          >
             <CardHeader className="pb-2">
               <div className="flex items-center gap-2">
                 <a.icon className="h-5 w-5 text-purple-400" />
@@ -96,7 +122,7 @@ export function MigratePage() {
             <div className="bg-slate-900 border border-slate-800 rounded-lg p-3">
               <p className="text-xs font-medium text-slate-300 mb-2">Docker → Podman</p>
               <pre className="text-xs text-blue-300 font-mono whitespace-pre-wrap">
-{`# Same compose file works
+                {`# Same compose file works
 podman compose up -d
 
 # Pull Docker Hub images
@@ -112,7 +138,7 @@ podman pod create --name my-pod`}
             <div className="bg-slate-900 border border-slate-800 rounded-lg p-3">
               <p className="text-xs font-medium text-slate-300 mb-2">Podman → Docker</p>
               <pre className="text-xs text-blue-300 font-mono whitespace-pre-wrap">
-{`# Export image for Docker
+                {`# Export image for Docker
 podman save --format docker-archive \\
   -o myimage.tar myimage:latest
 

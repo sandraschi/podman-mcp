@@ -1,13 +1,14 @@
 import { Cpu, RefreshCw, Save } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  getHealth,
+  getLlmProviders,
+  getLlmSettings,
+  type LlmProvider,
+  setLlmSettings,
+} from "@/common/api";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -17,13 +18,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  getHealth,
-  getLlmProviders,
-  getLlmSettings,
-  setLlmSettings,
-  type LlmProvider,
-} from "@/common/api";
 
 const DEFAULT_ENDPOINTS: Record<string, string> = {
   ollama: "http://127.0.0.1:11434",
@@ -72,9 +66,7 @@ export function Settings() {
           return;
         }
         const saved = getLlmSettings();
-        const current =
-          list.find((p) => p.type === (force ? provider : saved.provider)) ??
-          list[0];
+        const current = list.find((p) => p.type === (force ? provider : saved.provider)) ?? list[0];
         applyProvider(current.type, list);
         setApiStatus(
           `Discovered: ${list.map((p) => `${p.type} (${p.models.length} models)`).join(", ")}`,
@@ -96,8 +88,7 @@ export function Settings() {
         setProviders(list);
         if (list.length > 0) {
           const saved = getLlmSettings();
-          const current =
-            list.find((p) => p.type === saved.provider) ?? list[0];
+          const current = list.find((p) => p.type === saved.provider) ?? list[0];
           applyProvider(current.type, list);
           if (saved.model) setModel(saved.model);
         }
@@ -189,11 +180,7 @@ export function Settings() {
                 disabled={modelOptions.length === 0}
               >
                 <SelectTrigger className="bg-slate-900 border-slate-800 text-slate-100">
-                  <SelectValue
-                    placeholder={
-                      loadingModels ? "Loading models…" : "Select a model"
-                    }
-                  />
+                  <SelectValue placeholder={loadingModels ? "Loading models…" : "Select a model"} />
                 </SelectTrigger>
                 <SelectContent className="bg-slate-900 border-slate-800 text-slate-100 max-h-64">
                   {modelOptions.map((m) => (
@@ -222,9 +209,7 @@ export function Settings() {
               disabled={loadingModels}
               onClick={() => void refreshGlom(true)}
             >
-              <RefreshCw
-                className={`mr-2 h-4 w-4 ${loadingModels ? "animate-spin" : ""}`}
-              />
+              <RefreshCw className={`mr-2 h-4 w-4 ${loadingModels ? "animate-spin" : ""}`} />
               Refresh models
             </Button>
             <Button

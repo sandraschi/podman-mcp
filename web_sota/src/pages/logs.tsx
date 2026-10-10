@@ -1,29 +1,17 @@
-import {
-  ArrowDown,
-  ArrowUp,
-  Download,
-  Radio,
-  ScrollText,
-  Trash2,
-} from "lucide-react";
+import { ArrowDown, ArrowUp, Download, Radio, ScrollText, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   clearLogs,
   downloadLogsExport,
   getLogStats,
-  queryLogs,
   type LogEntry,
   type LogQueryParams,
   type LogStats,
+  queryLogs,
 } from "@/common/api";
+import { cn } from "@/common/utils";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -34,7 +22,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { cn } from "@/common/utils";
 
 const LEVELS = ["", "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] as const;
 const KINDS = ["", "tool_call", "export", "server", "system"] as const;
@@ -93,10 +80,7 @@ export function LogsPage() {
 
   const load = useCallback(async () => {
     try {
-      const [logsRes, statsRes] = await Promise.all([
-        queryLogs(queryParams()),
-        getLogStats(),
-      ]);
+      const [logsRes, statsRes] = await Promise.all([queryLogs(queryParams()), getLogStats()]);
       setEntries(logsRes.entries);
       setTotal(logsRes.total);
       setMaxEntries(logsRes.max_entries);
@@ -151,6 +135,7 @@ export function LogsPage() {
     return () => window.clearInterval(id);
   }, [liveTail, tailPoll]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: entries dep intentionally re-runs scroll on new log lines
   useEffect(() => {
     const el = streamRef.current;
     if (!el || !autoScroll || userScrolledRef.current) return;
@@ -190,13 +175,9 @@ export function LogsPage() {
         <div>
           <div className="flex items-center gap-2 text-blue-400">
             <ScrollText className="h-6 w-6" />
-            <span className="text-sm font-medium uppercase tracking-wider">
-              Operations
-            </span>
+            <span className="text-sm font-medium uppercase tracking-wider">Operations</span>
           </div>
-          <h2 className="mt-1 text-3xl font-bold tracking-tight text-white">
-            Event logs
-          </h2>
+          <h2 className="mt-1 text-3xl font-bold tracking-tight text-white">Event logs</h2>
           <p className="text-slate-400">
             Tool calls, exports, and server events — ring buffer with live tail
           </p>
@@ -253,9 +234,7 @@ export function LogsPage() {
               className="border-slate-800 bg-gradient-to-br from-slate-950/80 to-slate-900/40"
             >
               <CardContent className="pt-4">
-                <p className="text-xs uppercase tracking-wide text-slate-500">
-                  {item.label}
-                </p>
+                <p className="text-xs uppercase tracking-wide text-slate-500">{item.label}</p>
                 <p className="text-2xl font-semibold text-white">{item.value}</p>
               </CardContent>
             </Card>
@@ -267,8 +246,7 @@ export function LogsPage() {
         <CardHeader className="pb-3">
           <CardTitle className="text-white">Filters</CardTitle>
           <CardDescription className="text-slate-400">
-            Search, filter by level/kind, paginate — enable live tail for hot
-            updates on page 1
+            Search, filter by level/kind, paginate — enable live tail for hot updates on page 1
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
@@ -373,20 +351,13 @@ export function LogsPage() {
             </div>
             <div className="flex items-end gap-3 pb-0.5">
               <div className="flex items-center gap-2">
-                <Switch
-                  id="live-tail"
-                  checked={liveTail}
-                  onCheckedChange={setLiveTail}
-                />
+                <Switch id="live-tail" checked={liveTail} onCheckedChange={setLiveTail} />
                 <Label
                   htmlFor="live-tail"
                   className="flex cursor-pointer items-center gap-1.5 text-slate-300"
                 >
                   <Radio
-                    className={cn(
-                      "h-4 w-4",
-                      liveTail ? "text-emerald-400" : "text-slate-600",
-                    )}
+                    className={cn("h-4 w-4", liveTail ? "text-emerald-400" : "text-slate-600")}
                   />
                   Live tail
                 </Label>
@@ -427,8 +398,7 @@ export function LogsPage() {
           <div>
             <CardTitle className="text-base text-white">Log stream</CardTitle>
             <CardDescription className="text-xs text-slate-500">
-              {total.toLocaleString()} matching · max {maxEntries.toLocaleString()}{" "}
-              retained
+              {total.toLocaleString()} matching · max {maxEntries.toLocaleString()} retained
               {liveTail && page === 0 && (
                 <span className="ml-2 text-emerald-400">● tail active</span>
               )}
@@ -468,8 +438,7 @@ export function LogsPage() {
                     {entry.level}
                   </span>
                   <div className="min-w-0 text-slate-200">
-                    <span className="text-violet-400">[{entry.kind}]</span>{" "}
-                    {entry.detail}
+                    <span className="text-violet-400">[{entry.kind}]</span> {entry.detail}
                     {entry.meta && Object.keys(entry.meta).length > 0 && (
                       <span className="mt-0.5 block truncate text-slate-500">
                         {JSON.stringify(entry.meta)}
