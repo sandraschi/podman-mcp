@@ -157,8 +157,11 @@ export function Dashboard() {
 
   if (error || !data) {
     return (
-      <div className="space-y-6">
-        <div className="mb-6 bg-gradient-to-br from-blue-900/20 via-slate-900/50 to-transparent border border-blue-900/30 rounded-xl px-6 py-5">
+      <div className="space-y-6" data-testid="dashboard-page">
+        <div
+          className="mb-6 bg-gradient-to-br from-blue-900/20 via-slate-900/50 to-transparent border border-blue-900/30 rounded-xl px-6 py-5"
+          data-testid="dashboard-hero"
+        >
           <h3 className="text-lg font-semibold text-white">Podman MCP</h3>
           <p className="text-sm text-slate-300 mt-1">
             AI-powered Podman management via natural language. Control containers, pods, images,
@@ -548,6 +551,7 @@ function RestartPodmanButton() {
     <div className="flex flex-col items-end gap-1">
       <button
         type="button"
+        data-testid="dashboard-restart"
         onClick={handleRestart}
         disabled={restarting}
         className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium bg-red-700 hover:bg-red-600 disabled:opacity-50 text-white rounded-md transition-colors"

@@ -186,6 +186,7 @@ export function LogsPage() {
           <Button
             variant="outline"
             size="sm"
+            data-testid="logs-export-json"
             className="border-slate-700"
             onClick={() => void handleExport("json")}
           >
@@ -195,6 +196,7 @@ export function LogsPage() {
           <Button
             variant="outline"
             size="sm"
+            data-testid="logs-export-csv"
             className="border-slate-700"
             onClick={() => void handleExport("csv")}
           >
@@ -204,6 +206,7 @@ export function LogsPage() {
           <Button
             variant="outline"
             size="sm"
+            data-testid="logs-clear"
             className="border-rose-900/50 text-rose-300 hover:bg-rose-950/40"
             onClick={() => void handleClear()}
           >

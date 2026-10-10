@@ -24,13 +24,13 @@ export function Tools() {
   }, []);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="tools-page">
       <div>
         <h2 className="text-2xl font-bold tracking-tight text-white">Podman MCP Tools</h2>
         <p className="text-slate-400">Directly execute container and engine operations</p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3" data-testid="tools-grid">
         {loading ? (
           <div className="col-span-full flex items-center justify-center p-12">
             <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
@@ -51,7 +51,11 @@ export function Tools() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Button size="sm" className="w-full bg-slate-800 hover:bg-slate-700 text-slate-200">
+                <Button
+                  size="sm"
+                  data-testid={`tool-run-${tool}`}
+                  className="w-full bg-slate-800 hover:bg-slate-700 text-slate-200"
+                >
                   <Play className="mr-2 h-3 w-3" /> Execute
                 </Button>
               </CardContent>

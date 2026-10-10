@@ -115,7 +115,7 @@ export function Settings() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="settings-page">
       <div>
         <h2 className="text-2xl font-bold tracking-tight text-white">Settings</h2>
         <p className="text-slate-400">
@@ -135,7 +135,7 @@ export function Settings() {
         </CardHeader>
         <CardContent className="space-y-4">
           {providers.length > 0 ? (
-            <ul className="space-y-1 text-sm text-emerald-300/90">
+            <ul className="space-y-1 text-sm text-emerald-300/90" data-testid="settings-providers">
               {providers.map((p) => (
                 <li key={p.type}>
                   {p.type} at {p.base_url}
@@ -154,7 +154,11 @@ export function Settings() {
           <div className="grid gap-4 md:grid-cols-3">
             <div className="grid gap-2">
               <Label className="text-slate-300">Provider</Label>
-              <Select value={provider} onValueChange={onProviderChange}>
+              <Select
+                value={provider}
+                onValueChange={onProviderChange}
+                data-testid="settings-provider"
+              >
                 <SelectTrigger className="bg-slate-900 border-slate-800 text-slate-100">
                   <SelectValue placeholder="Select provider" />
                 </SelectTrigger>

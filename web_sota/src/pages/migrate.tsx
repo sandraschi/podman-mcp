@@ -56,7 +56,7 @@ const ACTIONS = [
 
 export function MigratePage() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="migrate-page">
       <div>
         <h2 className="text-2xl font-bold tracking-tight text-white">Docker ↔ Podman Migration</h2>
         <p className="text-slate-400">Port between Docker Desktop and Podman seamlessly</p>
@@ -87,7 +87,7 @@ export function MigratePage() {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3" data-testid="migrate-actions">
         {ACTIONS.map((a) => (
           <Card
             key={a.label}
@@ -101,7 +101,10 @@ export function MigratePage() {
             </CardHeader>
             <CardContent className="text-sm text-slate-400 space-y-2">
               <p>{a.desc}</p>
-              <code className="block bg-slate-900 border border-slate-800 rounded p-2 text-xs font-mono text-purple-300 overflow-x-auto whitespace-pre-wrap">
+              <code
+                data-testid="migrate-example"
+                className="block bg-slate-900 border border-slate-800 rounded p-2 text-xs font-mono text-purple-300 overflow-x-auto whitespace-pre-wrap"
+              >
                 {a.tool}
               </code>
             </CardContent>

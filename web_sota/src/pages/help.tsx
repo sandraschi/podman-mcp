@@ -30,6 +30,7 @@ export function Help() {
         <button
           key={t.id}
           type="button"
+          data-testid={`help-tab-${t.id}`}
           onClick={() => setActiveTab(t.id)}
           className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-t-lg transition-colors ${
             activeTab === t.id
@@ -45,7 +46,7 @@ export function Help() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="help-page">
       <div>
         <h2 className="text-2xl font-bold tracking-tight text-white">Help & Documentation</h2>
         <p className="text-slate-400">
@@ -144,7 +145,10 @@ export function Help() {
               </div>
             </CardHeader>
             <CardContent className="text-sm text-slate-400 space-y-3">
-              <pre className="bg-slate-900/80 border border-slate-800 rounded-lg p-4 text-xs font-mono text-slate-300 overflow-x-auto">
+              <pre
+                data-testid="help-example"
+                className="bg-slate-900/80 border border-slate-800 rounded-lg p-4 text-xs font-mono text-slate-300 overflow-x-auto"
+              >
                 {`LLM Client (Claude Desktop / Cursor)
       |
       +--- (STDIO JSON-RPC)
