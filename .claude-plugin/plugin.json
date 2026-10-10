@@ -1,0 +1,1 @@
+{"description": "Podman container control plane (manage_* tools, 11112/11113)", "hooks": "../hooks/hooks.json", "name": "podman-mcp"}

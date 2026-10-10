@@ -1,0 +1,1 @@
+{"SessionStart": [{"text": "podman-mcp: Podman containers/pods/images/compose via manage_containers, manage_pods, manage_images, manage_compose, manage_system (ports 11112/11113). Recall: read llms-full.txt first; verify machine health before up. Save: ruff+pytest before commit.", "type": "text"}]}
