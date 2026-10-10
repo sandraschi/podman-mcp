@@ -10,6 +10,7 @@
         Kind          = 'uvicorn'
         UvicornTarget = 'customization.server:app'
         SyncExtras    = @('dev')
+        SyncOnStart  = $true
         Env           = @{
             WEB_PORT   = '11113'
             PODMAN_CMD = "$env:LOCALAPPDATA\Programs\Podman\podman.exe"
