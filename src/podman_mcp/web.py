@@ -75,6 +75,49 @@ def setup_webapp(app: FastAPI, mcp_app: FastMCP):
             await manager.glom_local_providers_if_up(force=True)
         return {"success": True, "providers": manager.list_providers()}
 
+    @app.get("/api/llm/discover")
+    async def llm_discover():
+        manager = get_llm_manager()
+        return {"success": True, "providers": manager.list_providers()}
+
+    @app.get("/api/llm/models")
+    async def llm_models():
+        manager = get_llm_manager()
+        models: dict[str, list[str]] = {}
+        for provider in manager.list_providers():
+            ptype = provider.get("type", "unknown") if isinstance(provider, dict) else "unknown"
+            plist = provider.get("models", []) if isinstance(provider, dict) else []
+            models[ptype] = plist
+        return {"success": True, "models": models}
+
+    @app.get("/api/llm/onboarding")
+    async def llm_onboarding():
+        return {
+            "success": True,
+            "facts": [
+                "Podman runs daemon-less: no background service when containers are stopped.",
+                "Check machine health with manage_system status before compose up.",
+                "Ollama (http://localhost:11434) or LM Studio (http://localhost:1234) enable AI chat.",
+            ],
+            "recommended_path": "dashboard -> containers -> compose",
+        }
+
+    @app.get("/api/skills")
+    async def list_skills():
+        prompts = await mcp_app.list_prompts()
+        tools = await mcp_app.list_tools()
+        return {"skills": [p.name for p in prompts], "tools": [t.name for t in tools]}
+
+    @app.get("/api/status")
+    async def status():
+        tools = await mcp_app.list_tools()
+        return {
+            "status": "running",
+            "service": "podman-mcp",
+            "uptime_seconds": time.time() - _start_time,
+            "tool_count": len(tools),
+        }
+
     @app.get("/api/logs")
     async def logs_query(
         limit: int = Query(50, ge=1, le=500),
@@ -350,6 +393,7 @@ def setup_webapp(app: FastAPI, mcp_app: FastMCP):
             log_activity("server", f"dashboard error: {exc}", level="ERROR")
             raise HTTPException(status_code=500, detail=str(exc)) from exc
 
+    @app.post("/api/llm/chat")
     @app.post("/api/chat")
     async def chat(payload: dict = Body(...), user: str = Depends(authenticate)):
         query = payload.get("query", "")
@@ -515,8 +559,8 @@ def setup_webapp(app: FastAPI, mcp_app: FastMCP):
                     try:
                         data = _json.loads(line)
                         yield data.get("message", {}).get("content", "")
-                    except Exception:
-                        pass
+                    except Exception as exc:
+                        logger.debug("Skipping non-JSON chat stream line: %s", exc)
 
     async def _stream_lmstudio(client, endpoint, model, messages):
         async with client.stream(
@@ -535,8 +579,8 @@ def setup_webapp(app: FastAPI, mcp_app: FastMCP):
                     try:
                         data = _json.loads(chunk)
                         yield data["choices"][0].get("delta", {}).get("content", "")
-                    except Exception:
-                        pass
+                    except Exception as exc:
+                        logger.debug("Skipping non-JSON SSE chunk: %s", exc)
 
     @app.get("/api/v1/diagnostics")
     async def diagnostics():
@@ -575,3 +619,17 @@ def setup_webapp(app: FastAPI, mcp_app: FastMCP):
 
         log_activity("system", msg, level="INFO" if success else "ERROR")
         return {"success": success, "message": msg}
+
+    @app.post("/api/shutdown")
+    async def shutdown():
+        import asyncio as _asyncio
+        import os as _os
+
+        async def _exit() -> None:
+            await _asyncio.sleep(0.5)
+            _os._exit(0)
+
+        _shutdown_task = _asyncio.create_task(_exit())
+        _shutdown_task.add_done_callback(lambda _t: None)
+        log_activity("system", "Shutdown requested via /api/shutdown", level="WARNING")
+        return {"success": True, "message": "podman-mcp shutting down in ~500 ms."}
