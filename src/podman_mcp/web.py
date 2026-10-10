@@ -31,6 +31,19 @@ SortParam = Literal["asc", "desc"]
 logger = logging.getLogger("podmanmcp")
 
 
+def format_bytes(num: object) -> str:
+    """Human-readable byte count for dashboard display (no extra dependency)."""
+    try:
+        n = float(num or 0)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return "—"
+    for unit in ("B", "KiB", "MiB", "GiB", "TiB"):
+        if n < 1024 or unit == "TiB":
+            return f"{n:.1f} {unit}"
+        n /= 1024
+    return f"{n:.1f} TiB"
+
+
 def parse_podman_events(output: str, limit: int = 200) -> list[dict]:
     """Parse `podman events --format json` newline-delimited output.
 
@@ -396,8 +409,14 @@ def setup_webapp(app: FastAPI, mcp_app: FastMCP):
             pods_list = pods_res.get("pods") or []
 
             status_data = status_res.get("data") or {}
+            info_res = await manage_system(operation="info")
+            info_data = info_res.get("data") if info_res.get("success") else None
+            host_data = info_data.get("host") if isinstance(info_data, dict) else None
+            host_data = host_data if isinstance(host_data, dict) else {}
 
             # Map standard system info block for UI dashboard compatibility
+            # (falls back to placeholders when the engine is unreachable)
+            mem_total = host_data.get("memTotal")
             sys_info = {
                 "podman_version": status_data.get("version", "Unknown"),
                 "rootless": status_data.get("rootless", False),
@@ -407,8 +426,13 @@ def setup_webapp(app: FastAPI, mcp_app: FastMCP):
                     "stopped": sum(1 for c in containers_list if c.get("state") != "running"),
                 },
                 "images": {"total": len(images_list)},
-                "memory": {"total_formatted": "Allocated via VM"},
-                "cpu": {"cores": 0},
+                "memory": {
+                    "total": mem_total,
+                    "total_formatted": format_bytes(mem_total) if mem_total else "Allocated via VM",
+                    "free": host_data.get("memFree"),
+                    "free_formatted": format_bytes(host_data.get("memFree")) if host_data.get("memFree") else "—",
+                },
+                "cpu": {"cores": host_data.get("cpus") or 0},
             }
 
             def _tool_message(res: dict) -> str:
