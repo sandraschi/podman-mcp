@@ -66,8 +66,8 @@ async def manage_health(
                 data = json.loads(inspect_res["stdout"])
                 if data and isinstance(data, list):
                     info = data[0]
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.debug("Health inspect output was not JSON, analyzing with empty info: %s", exc)
 
             state_info = info.get("State", {})
             host_config = info.get("HostConfig", {})
@@ -83,11 +83,11 @@ async def manage_health(
 
             issues = []
             if restart_count > 3:
-                issues.append({"severity": "error", "detail": f"Restarted {restart_count} times — possible crash loop"})
+                issues.append({"severity": "error", "detail": f"Restarted {restart_count} times - possible crash loop"})
             elif restart_count > 0:
                 issues.append({"severity": "warning", "detail": f"Restarted {restart_count} times"})
             if oom_killed:
-                issues.append({"severity": "error", "detail": "OOM killed — increase memory limit or reduce workload"})
+                issues.append({"severity": "error", "detail": "OOM killed - increase memory limit or reduce workload"})
             if exit_code != 0:
                 issues.append({"severity": "warning", "detail": f"Last exit code: {exit_code}"})
             logs_res = await run_podman_command(["logs", "--tail", "50", container_id])
@@ -149,14 +149,14 @@ async def manage_health(
             if disk_res["success"] and disk_res["stdout"].strip():
                 try:
                     disk_data = json.loads(disk_res["stdout"])
-                except Exception:
-                    pass
+                except Exception as exc:
+                    logger.debug("System df output was not JSON, reporting empty disk data: %s", exc)
 
             alerts = []
             if restarting > 0:
                 alerts.append({"severity": "error", "detail": f"{restarting} container(s) in restart loop"})
             if exited > 20:
-                alerts.append({"severity": "warning", "detail": f"{exited} stopped containers — consider cleanup"})
+                alerts.append({"severity": "warning", "detail": f"{exited} stopped containers - consider cleanup"})
 
             return {
                 "success": True,
@@ -223,7 +223,7 @@ async def manage_health(
                     {
                         "priority": "info",
                         "action": "none",
-                        "detail": "System looks healthy — no recommendations needed.",
+                        "detail": "System looks healthy - no recommendations needed.",
                     }
                 )
 

@@ -20,7 +20,7 @@ _MUTATING = {}
 _DESTRUCTIVE = {"destructive": True}
 
 
-@mcp.tool()
+@mcp.tool(annotations=_DESTRUCTIVE)
 @check_podman_available
 async def manage_system(
     operation: Annotated[
@@ -95,8 +95,8 @@ async def manage_system(
             if res["success"] and res["stdout"].strip():
                 try:
                     machines = json.loads(res["stdout"])
-                except Exception:
-                    pass
+                except Exception as exc:
+                    logger.debug("Machine list output was not JSON, returning empty list: %s", exc)
 
             # Detect rootless mode via podman info
             rootless = False
@@ -105,8 +105,8 @@ async def manage_system(
                 try:
                     info_data = json.loads(info_res["stdout"])
                     rootless = info_data.get("host", {}).get("security", {}).get("rootless", False)
-                except Exception:
-                    pass
+                except Exception as exc:
+                    logger.debug("Podman info output was not JSON, rootless stays False: %s", exc)
 
             # Count local resources
             containers_res = await run_podman_command(["ps", "-a", "--format", "json"])
@@ -116,15 +116,15 @@ async def manage_system(
             if containers_res["success"] and containers_res["stdout"].strip():
                 try:
                     containers_count = len(json.loads(containers_res["stdout"]))
-                except Exception:
-                    pass
+                except Exception as exc:
+                    logger.debug("Container count parse failed, reporting 0: %s", exc)
 
             images_count = 0
             if images_res["success"] and images_res["stdout"].strip():
                 try:
                     images_count = len(json.loads(images_res["stdout"]))
-                except Exception:
-                    pass
+                except Exception as exc:
+                    logger.debug("Image count parse failed, reporting 0: %s", exc)
 
             data = {
                 "podman_available": True,

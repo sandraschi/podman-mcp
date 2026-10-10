@@ -15,8 +15,10 @@ from podmanmcp.tools.utils import _error_response
 
 logger = logging.getLogger("podmanmcp")
 
+_DESTRUCTIVE = {"destructive": True}
 
-@mcp.tool()
+
+@mcp.tool(annotations=_DESTRUCTIVE)
 @check_podman_available
 async def manage_compose(
     operation: Annotated[
@@ -149,8 +151,8 @@ async def manage_compose(
             if res["stdout"].strip():
                 try:
                     services = json.loads(res["stdout"])
-                except Exception:
-                    pass
+                except Exception as exc:
+                    logger.debug("Compose ps output was not JSON, returning empty list: %s", exc)
 
             return {
                 "success": True,
@@ -221,8 +223,8 @@ async def manage_compose(
             if res["success"] and res["stdout"].strip():
                 try:
                     version = json.loads(res["stdout"]).get("Client", {}).get("Version", "unknown")
-                except Exception:
-                    pass
+                except Exception as exc:
+                    logger.debug("Podman version output was not JSON, reporting 'unknown': %s", exc)
             parts.append(f"Podman version: {version}")
             return {
                 "success": True,

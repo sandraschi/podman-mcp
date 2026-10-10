@@ -241,8 +241,8 @@ async def manage_agentic(
                         if info:
                             hc = info[0].get("State", {}).get("Health", {})
                             health = hc.get("Status", "no healthcheck")
-                    except Exception:
-                        pass
+                    except Exception as exc:
+                        logger.debug("Health sweep inspect parse failed, keeping 'unknown': %s", exc)
                 results.append({"container": name, "health": health})
                 if health == "unhealthy":
                     unhealthy.append(name)
@@ -250,7 +250,7 @@ async def manage_agentic(
                         await run_podman_command(["restart", name])
             return {
                 "success": True,
-                "message": f"Health sweep: {len(containers)} containers ({len(unhealthy)} unhealthy{' — restarted' if not dry_run and unhealthy else ''}).",
+                "message": f"Health sweep: {len(containers)} containers ({len(unhealthy)} unhealthy{' - restarted' if not dry_run and unhealthy else ''}).",
                 "data": {"containers": results},
                 "summary": {
                     "total": len(containers),
