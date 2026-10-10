@@ -86,17 +86,31 @@ logs:
 
 # Install Playwright browsers (one-time)
 e2e-install:
-    cd {{REPO}}\web_sota
-    npx playwright install chromium
+    cd {{REPO}}\web_sota; npx playwright install chromium
 
 # Run Playwright E2E smoke tests (start backend first: just serve)
 e2e:
-	cd {{REPO}}\web_sota
-	npx playwright test
+    cd {{REPO}}\web_sota; npx playwright test
+
+# Fleet standard aliases (PACKAGING_STANDARDS + QUALITY_GATES)
+lint:
+    uv run ruff check src/
+    cd {{REPO}}\web_sota; npx @biomejs/biome ci .
+
+fmt:
+    uv run ruff format src/
+
+serve:
+    powershell.exe -NoProfile -File "{{REPO}}\start.ps1" -BackendOnly
+
+gates-green:
+    uv run ruff check src/
+    uv run ruff format src/ --check
+    uv run pytest tests/ -q
 
 
 # Bootstrap: install dev deps + pre-commit hook
 bootstrap:
-    uv sync --group dev
+    uv sync --group dev --extra dev
     uv run pre-commit install
     Write-Host "Pre-commit hooks installed." -ForegroundColor Green

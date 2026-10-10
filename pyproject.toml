@@ -64,8 +64,18 @@ target-version = "py312"
 exclude = ["scripts", "tests", "_llm_test_scripts", "monitoring", "examples", "mcpb", "docs", "build"]
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "I", "B", "S", "UP", "RUF"]
-ignore = ["S101", "B008", "S106", "S110", "S112", "S101", "B008", "S106", "S110", "S112", "RUF012", "S603", "S607", "S324", "E402", "E501"]
+select = ["E", "F", "W", "I", "B", "S", "UP", "RUF", "T20"]
+ignore = ["S101", "B008", "S106", "RUF012", "S603", "S607", "S324", "E402", "E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"src/test_*.py" = ["T20"]
+"scripts/*.py" = ["T20", "S603", "S607"]
+"tests/**/*.py" = ["S101", "T20"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = "--cov=src --cov-report=term-missing --cov-fail-under=20"
 
 [tool.ruff.format]
 quote-style = "double"
@@ -76,4 +86,5 @@ dev = [
     "pillow>=12.2.0",
     "pytesseract>=0.3.13",
     "pywinauto>=0.6.9",
+    "pyright>=1.1.39",
 ]

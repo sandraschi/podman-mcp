@@ -180,3 +180,13 @@ Thumbs.db
 target/
 
 _dashboard/
+
+# Fleet assfix 2026-10-10: regenerable snapshots, MCPB artifacts, timestamped backups
+reports/
+*.mcpb
+*.bak.*
+mcpb/src/
+mcpb/dist/
+mcpb/assets/
+mcpb/.mcpbignore
+native/gen/
