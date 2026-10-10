@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
-import { API_BASE } from "@/lib/api";
+import { AlertCircle, Image as ImageIcon, Loader2 } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, AlertCircle, Image as ImageIcon } from "lucide-react";
+import { API_BASE } from "@/lib/api";
 
 interface ImageItem {
   id: string;
@@ -15,14 +15,14 @@ function formatBytes(bytes: number): string {
   const k = 1024;
   const sizes = ["B", "KB", "MB", "GB", "TB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
+  return `${parseFloat((bytes / k ** i).toFixed(2))} ${sizes[i]}`;
 }
 
 function formatDate(dateString: string | undefined): string {
   if (!dateString) return "—";
   try {
     const date = new Date(dateString);
-    return date.toLocaleDateString() + " " + date.toLocaleTimeString();
+    return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
   } catch {
     return dateString;
   }
@@ -33,7 +33,7 @@ export function Images() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchImages = async () => {
+  const fetchImages = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch(`${API_BASE}/api/dashboard`);
@@ -47,11 +47,11 @@ export function Images() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchImages();
-  }, []);
+  }, [fetchImages]);
 
   if (loading && images.length === 0) {
     return (
@@ -69,6 +69,7 @@ export function Images() {
           <p className="text-slate-400">Podman images available locally</p>
         </div>
         <button
+          type="button"
           onClick={fetchImages}
           disabled={loading}
           className="rounded-md bg-slate-800 px-3 py-2 text-sm font-medium text-slate-200 hover:bg-slate-700 disabled:opacity-50"
@@ -104,13 +105,16 @@ export function Images() {
                   </tr>
                 </thead>
                 <tbody>
-                  {images.map((img, i) => {
-                    const tag = (img.repo_tags && img.repo_tags[0]) || img.id || "—";
+                  {images.map((img) => {
+                    const tag = img.repo_tags?.[0] || img.id || "—";
                     const size = img.size ? formatBytes(img.size) : "—";
                     const created = formatDate(img.created);
-                    
+
                     return (
-                      <tr key={i} className="border-b border-slate-800/80 text-slate-200">
+                      <tr
+                        key={img.id || tag}
+                        className="border-b border-slate-800/80 text-slate-200"
+                      >
                         <td className="py-3 pr-4">
                           <span className="flex items-center gap-2">
                             <ImageIcon className="h-4 w-4 text-blue-500 shrink-0" />

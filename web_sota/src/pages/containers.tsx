@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
-import { API_BASE } from "@/lib/api";
+import { AlertCircle, Box, Loader2 } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, AlertCircle, Box } from "lucide-react";
+import { API_BASE } from "@/lib/api";
 
 interface ContainerItem {
   id: string;
@@ -17,7 +17,7 @@ export function Containers() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchContainers = async () => {
+  const fetchContainers = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch(`${API_BASE}/api/containers`);
@@ -31,11 +31,11 @@ export function Containers() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchContainers();
-  }, []);
+  }, [fetchContainers]);
 
   if (loading && containers.length === 0) {
     return (
@@ -53,6 +53,7 @@ export function Containers() {
           <p className="text-slate-400">List and manage Podman containers</p>
         </div>
         <button
+          type="button"
           onClick={fetchContainers}
           disabled={loading}
           className="rounded-md bg-slate-800 px-3 py-2 text-sm font-medium text-slate-200 hover:bg-slate-700 disabled:opacity-50"
@@ -102,11 +103,7 @@ export function Containers() {
                       <td className="py-3 pr-4">{c.image}</td>
                       <td className="py-3 pr-4">
                         <span
-                          className={
-                            c.state === "running"
-                              ? "text-emerald-400"
-                              : "text-slate-500"
-                          }
+                          className={c.state === "running" ? "text-emerald-400" : "text-slate-500"}
                         >
                           {c.state}
                         </span>
