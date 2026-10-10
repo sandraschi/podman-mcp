@@ -28,6 +28,7 @@ from pathlib import Path
 from typing import (
     Any,
     TypeVar,
+    cast,
 )
 
 # Type variable for generic function wrapping
@@ -37,14 +38,14 @@ T = TypeVar("T")
 
 # Third-party imports
 LOGURU_AVAILABLE = False
-loguru_logger = None
+loguru_logger: Any = None  # Optional loguru handle; guarded dynamic use below
 LOGURU_FORMAT = "{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | {name}:{function}:{line} - {message}"
 
 # Only try to import loguru if it's actually needed
 if os.environ.get("ENABLE_LOGURU", "false").lower() == "true":
     try:
-        from loguru import logger as loguru_logger
-        from loguru._defaults import LOGURU_FORMAT as _LOGURU_FORMAT
+        from loguru import logger as loguru_logger  # pyright: ignore[reportMissingImports]  # noqa: I001  # optional dep; single-line keeps both linters happy
+        from loguru._defaults import LOGURU_FORMAT as _LOGURU_FORMAT  # pyright: ignore[reportMissingImports]  # optional
 
         LOGURU_AVAILABLE = True
         LOGURU_FORMAT = _LOGURU_FORMAT
@@ -129,22 +130,19 @@ class JsonFormatter(logging.Formatter):
         }
 
         # Add correlation ID if available
-        if hasattr(record, "correlation_id"):
-            log_record["correlation_id"] = record.correlation_id
-        elif log_context.correlation_id:
-            log_record["correlation_id"] = log_context.correlation_id
+        correlation_id = getattr(record, "correlation_id", None) or log_context.correlation_id
+        if correlation_id:
+            log_record["correlation_id"] = correlation_id
 
         # Add request ID if available
-        if hasattr(record, "request_id"):
-            log_record["request_id"] = record.request_id
-        elif log_context.request_id:
-            log_record["request_id"] = log_context.request_id
+        request_id = getattr(record, "request_id", None) or log_context.request_id
+        if request_id:
+            log_record["request_id"] = request_id
 
         # Add user ID if available
-        if hasattr(record, "user_id"):
-            log_record["user_id"] = record.user_id
-        elif log_context.user_id:
-            log_record["user_id"] = log_context.user_id
+        user_id = getattr(record, "user_id", None) or log_context.user_id
+        if user_id:
+            log_record["user_id"] = user_id
 
         # Add labels and tags
         log_record["labels"] = log_context.labels
@@ -211,7 +209,7 @@ class JsonFormatter(logging.Formatter):
 class ContextLogger(logging.LoggerAdapter):
     """Logger adapter that adds context to log records."""
 
-    def process(self, msg: str, kwargs: dict[str, Any]) -> tuple[str, dict[str, Any]]:
+    def process(self, msg: Any, kwargs: Any) -> Any:
         """Add context to the log record."""
         extra = kwargs.get("extra", {})
 
@@ -235,7 +233,7 @@ class ContextLogger(logging.LoggerAdapter):
 
     def bind(self, **kwargs: Any) -> ContextLogger:
         """Bind context variables to this logger."""
-        extra = self.extra or {}
+        extra = dict(self.extra or {})
         extra.update(kwargs)
         return ContextLogger(self.logger, extra)
 
@@ -469,7 +467,7 @@ def _configure_loguru(
     # Configure syslog handler if enabled
     if enable_syslog:
         try:
-            from systemd import journal
+            from systemd import journal  # pyright: ignore[reportMissingImports]  # Linux-only optional dep
 
             loguru_logger.add(
                 journal.JournalHandler(),
@@ -592,18 +590,18 @@ class BoundLoggerAdapter(logging.LoggerAdapter):
     def __init__(self, logger: logging.Logger, extra: dict[str, Any]):
         super().__init__(logger, extra)
 
-    def process(self, msg: str, kwargs: dict[str, Any]) -> tuple[str, dict[str, Any]]:
+    def process(self, msg: Any, kwargs: Any) -> Any:
         """Process the logging message and keyword arguments."""
-        if "extra" not in kwargs:
-            kwargs["extra"] = {}
-        kwargs["extra"].update(self.extra)
+        extra: dict[str, Any] = dict(kwargs.get("extra") or {})
+        extra.update(dict(self.extra or {}))
+        kwargs["extra"] = extra
         return msg, kwargs
 
 
 class BoundLogger(logging.Logger):
     """Logger class that supports context binding."""
 
-    def bind(self, **kwargs: Any) -> BoundLogger:
+    def bind(self, **kwargs: Any) -> BoundLoggerAdapter:
         """Bind context variables to this logger."""
         return BoundLoggerAdapter(self, kwargs)
 
@@ -615,7 +613,7 @@ class BoundLogger(logging.Logger):
 # Patch the logger class
 logging.setLoggerClass(BoundLogger)
 
-# Export loguru logger if available
-if LOGURU_AVAILABLE:
+# Export loguru logger if available (kept as Any: optional third-party handle)
+if LOGURU_AVAILABLE and loguru_logger is not None:
     logger.patch_loguru()
-    logger = loguru_logger  # type: ignore
+    logger = cast(Any, loguru_logger)

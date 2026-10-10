@@ -13,7 +13,7 @@ import requests
 # Make loguru optional
 LOGURU_AVAILABLE = False
 try:
-    from loguru import logger
+    from loguru import logger  # pyright: ignore[reportMissingImports]  # optional dep, DummyLogger fallback below
 
     LOGURU_AVAILABLE = True
 except ImportError:
@@ -131,8 +131,8 @@ class LokiHandler:
             # Log the error but don't raise to avoid crashing the application
             logging.error(f"Failed to send logs to Loki: {e!s}")
 
-    def __call__(self, message: str) -> None:
-        """Handle a log message."""
+    def __call__(self, message: Any) -> None:
+        """Handle a log message (loguru Message with a .record dict)."""
         try:
             # Parse the JSON message from Loguru
             record = json.loads(message.record)
@@ -181,6 +181,7 @@ def add_loki_handler(
         logger.warning("Loki logging is not enabled or loguru is not available.")
         return None
 
+    url = url or "http://localhost:3100/loki/api/v1/push"
     try:
         handler = LokiHandler(url=url, tags=tags, labels=labels)
 

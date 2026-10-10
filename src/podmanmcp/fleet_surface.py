@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
-from typing import Annotated
+from typing import Annotated, Any
 
 from pydantic import Field
 
@@ -55,7 +56,7 @@ def register_fleet_surface(mcp) -> None:
             "manage_images, manage_system, manage_compose, prefab cards, webapp /logs. Transports: stdio, HTTP."
         )
 
-    @mcp.tool(annotations={"readonly": True})
+    @mcp.tool(app=True, annotations={"readonly": True})
     async def podman_containers_card(
         all_states: Annotated[bool, Field(description="Include stopped containers")] = True,
     ):
@@ -66,7 +67,7 @@ def register_fleet_surface(mcp) -> None:
         result = await manage_containers(operation="list")
         return build_containers_card(result)
 
-    @mcp.tool(annotations={"readonly": True})
+    @mcp.tool(app=True, annotations={"readonly": True})
     async def podman_pods_card():
         """List Podman Pods as a Prefab card (fleet list/status surface)."""
         from podmanmcp.prefabs import build_pods_card
@@ -75,7 +76,7 @@ def register_fleet_surface(mcp) -> None:
         result = await manage_pods(operation="list")
         return build_pods_card(result)
 
-    @mcp.tool(annotations={"readonly": True})
+    @mcp.tool(app=True, annotations={"readonly": True})
     async def podman_machine_status_card():
         """Podman Machine / CLI status as a Prefab card."""
         from podmanmcp.prefabs import build_machine_status_card
@@ -85,7 +86,7 @@ def register_fleet_surface(mcp) -> None:
         payload = result.get("data") or result
         return build_machine_status_card(payload)
 
-    @mcp.tool(annotations={"readonly": True})
+    @mcp.tool(app=True, annotations={"readonly": True})
     async def podman_images_card(
         limit: Annotated[int, Field(description="Max images in card")] = 12,
     ):
@@ -96,7 +97,7 @@ def register_fleet_surface(mcp) -> None:
         result = await manage_images(operation="list")
         return build_images_card(result, limit=limit)
 
-    @mcp.tool(annotations={"readonly": True})
+    @mcp.tool(app=True, annotations={"readonly": True})
     async def podman_system_info_card():
         """Engine system info as a Prefab card."""
         from podmanmcp.prefabs import build_system_info_card
@@ -105,5 +106,45 @@ def register_fleet_surface(mcp) -> None:
         result = await manage_system(operation="info")
         payload = result.get("data") or result
         return build_system_info_card(payload)
+
+    @mcp.tool()
+    async def podman_shutdown(
+        confirm: Annotated[bool, Field(description="Must be true to actually exit the server")] = False,
+    ) -> dict[str, Any]:
+        """
+        Request an orderly shutdown of the podman-mcp server process.
+
+        [RATIONALE]
+        Lets agents and the fleet launcher bounce the server (updates, restarts)
+        without killing the process from the outside, so in-flight responses flush.
+
+        ## Return Format
+        Returns a structured dictionary with:
+        - success (bool): Indication of command status.
+        - message (str): Conversational summary of the action.
+        - data (dict | None): Empty on success.
+
+        ## Examples
+        >>> await podman_shutdown()
+        >>> await podman_shutdown(confirm=True)
+        """
+        if not confirm:
+            return {
+                "success": False,
+                "message": "Pass confirm=true to shut down podman-mcp.",
+                "data": {"confirm": False},
+            }
+
+        async def _exit() -> None:
+            await asyncio.sleep(0.5)
+            os._exit(0)
+
+        _shutdown_task = asyncio.create_task(_exit())
+        _shutdown_task.add_done_callback(lambda _t: None)
+        return {
+            "success": True,
+            "message": "podman-mcp shutting down in ~500 ms.",
+            "data": {},
+        }
 
     logger.info("Fleet surface registered: prompts, resources, prefab tools")

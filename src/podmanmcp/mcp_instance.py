@@ -10,7 +10,7 @@ import logging
 import os
 import threading
 import traceback
-from typing import Any, Optional
+from typing import Any, Optional, cast
 
 from fastmcp import FastMCP
 from fastmcp.server import create_proxy
@@ -41,15 +41,15 @@ class FastMCPSingleton:
             try:
                 logger.info("Initializing FastMCP instance...")
 
-                from podman_mcp.config import get_sampling_config
-                from podman_mcp.sampling import PodmanSamplingHandler
+                from podmanmcp.sampling import PodmanSamplingHandler
+                from podmanmcp.sampling_config import get_sampling_config
 
                 sampling_handler = PodmanSamplingHandler(get_sampling_config())
 
                 self.mcp = FastMCP(
                     name="podman-mcp",
                     version=__version__,
-                    sampling_handler=sampling_handler,
+                    sampling_handler=cast(Any, sampling_handler),
                     sampling_handler_behavior="fallback",
                     instructions=(
                         "You are podman-mcp: Podman Machine and engine control for containers, "
@@ -97,7 +97,7 @@ class FastMCPSingleton:
                 logger.info("FastMCP server instance not yet available for patching. Will attempt later.")
                 return
 
-            original_handler = getattr(server, "_handle_message", None)
+            original_handler: Any = getattr(server, "_handle_message", None)
 
             if not callable(original_handler):
                 logger.warning("Could not find original message handler, skipping patch")
@@ -117,7 +117,7 @@ class FastMCPSingleton:
 
                             # Process with standard version
                             msg_dict["jsonrpc"] = "2.0"
-                            response = await original_handler(transport, json.dumps(msg_dict))
+                            response = await cast(Any, original_handler)(transport, json.dumps(msg_dict))
 
                             # Restore custom version in response if needed
                             if response:
@@ -134,7 +134,7 @@ class FastMCPSingleton:
                         logger.warning(f"Received invalid JSON message: {message[:100]}...")
 
                     # Standard message handling
-                    return await original_handler(transport, message)
+                    return await cast(Any, original_handler)(transport, message)
 
                 except Exception as e:
                     logger.error(f"Error in message handler: {e!s}")
@@ -150,8 +150,8 @@ class FastMCPSingleton:
             logger.debug(f"Error details: {traceback.format_exc()}")
 
 
-# Set during _initialize; tools import this symbol for @mcp.tool decorators
-mcp: FastMCP | None = None
+# Set during _initialize (before tool modules import it); tools use this symbol for @mcp.tool decorators
+mcp: FastMCP = cast("FastMCP", None)
 
 # Create the singleton instance
 _singleton: FastMCPSingleton = FastMCPSingleton()

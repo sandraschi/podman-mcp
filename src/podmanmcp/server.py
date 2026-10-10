@@ -6,7 +6,6 @@ This module initializes and runs the Podman MCP server with FastMCP 3.1+ compati
 Includes both MCP stdio transport and FastAPI HTTP server for the webapp.
 """
 
-import asyncio
 import logging
 import sys
 import threading
@@ -19,7 +18,7 @@ warnings.filterwarnings("ignore", category=UserWarning, module="pydantic")
 # Import local modules
 from podmanmcp.logging_config import LOG_FILE, configure_logging, logger
 from podmanmcp.mcp_instance import get_mcp
-from podmanmcp.tools.assorted_crap import SafeJSONEncoder, warn_with_log
+from podmanmcp.tools.assorted_crap import warn_with_log
 from podmanmcp.transport import run_server
 
 # Configure logging with JSON format and proper stream handling
@@ -33,9 +32,6 @@ server_logger = logging.getLogger("podmanmcp.server")
 warnings.showwarning = warn_with_log
 
 mcp = get_mcp()
-
-# Override the default JSON encoder
-mcp.json_encoder = SafeJSONEncoder()
 
 # Log that we're using the singleton instance. Tools are registered inside
 # get_mcp() via tool_registration.register_all_tools; the per-module imports
@@ -52,7 +48,13 @@ def run_fastapi_server():
     """
     import uvicorn
 
-    from customization.server import app
+    try:
+        from customization.server import app
+    except ImportError:
+        # Bare stdio installs (e.g. MCPB bundle with podmanmcp only) have no web
+        # bridge packages. The MCP server works without it; skip the dashboard.
+        logger.info("Web bridge packages not present - running stdio transport only.")
+        return
 
     logger.info("Starting FastAPI server on port 11113...")
     uvicorn.run(app, host="127.0.0.1", port=11113, log_level="warning")
@@ -71,9 +73,9 @@ def main() -> None:
 
         time.sleep(2)
 
-        # Start MCP stdio server
+        # Start MCP stdio server (run_server is sync: it drives asyncio.run internally)
         logger.info("Starting Podman MCP server with stdio transport...")
-        asyncio.run(run_server(mcp, server_name="podman-mcp"))
+        run_server(mcp, server_name="podman-mcp")
     except KeyboardInterrupt:
         logger.info("Shutting down Podman MCP server...")
     except Exception as e:

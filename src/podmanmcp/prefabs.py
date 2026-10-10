@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from prefab_ui.components import Badge, Card, Metric, Row
 
 
@@ -16,21 +18,21 @@ def build_containers_card(result: dict) -> Card:
         rows.append(
             Row(
                 children=[
-                    Metric(label="Name", value=str(item.get("name", "—"))[:40]),
-                    Metric(label="State", value=str(item.get("state", item.get("status", "—")))),
-                    Metric(label="Image", value=str(item.get("image", "—"))[:36]),
+                    Metric(label="Name", value=str(item.get("name", "-"))[:40]),
+                    Metric(label="State", value=str(item.get("state", item.get("status", "-")))),
+                    Metric(label="Image", value=str(item.get("image", "-"))[:36]),
                 ]
             )
         )
     running = sum(1 for c in containers if str(c.get("state", c.get("status", ""))).lower() == "running")
-    return Card(
-        children=rows or [Metric(label="Containers", value="0")],
-        title="Podman Containers",
-        badges=[
+    card_kwargs: dict[str, Any] = {
+        "title": "Podman Containers",
+        "badges": [
             Badge(label=f"{len(containers)} total"),
             Badge(label=f"{running} running"),
         ],
-    )
+    }
+    return Card(children=rows or [Metric(label="Containers", value="0")], **card_kwargs)
 
 
 def build_pods_card(result: dict) -> Card:
@@ -44,31 +46,31 @@ def build_pods_card(result: dict) -> Card:
         rows.append(
             Row(
                 children=[
-                    Metric(label="Name", value=str(item.get("Name", "—"))[:40]),
-                    Metric(label="Status", value=str(item.get("Status", "—"))),
+                    Metric(label="Name", value=str(item.get("Name", "-"))[:40]),
+                    Metric(label="Status", value=str(item.get("Status", "-"))),
                     Metric(
                         label="Containers",
-                        value=str(item.get("NumberOfContainers", item.get("numberOfContainers", "—"))),
+                        value=str(item.get("NumberOfContainers", item.get("numberOfContainers", "-"))),
                     ),
                 ]
             )
         )
     running = sum(1 for p in pods if str(p.get("Status", "")).lower() in ["running", "degraded"])
-    return Card(
-        children=rows or [Metric(label="Pods", value="0")],
-        title="Podman Pods",
-        badges=[
+    card_kwargs = {
+        "title": "Podman Pods",
+        "badges": [
             Badge(label=f"{len(pods)} total"),
             Badge(label=f"{running} running/degraded"),
         ],
-    )
+    }
+    return Card(children=rows or [Metric(label="Pods", value="0")], **card_kwargs)
 
 
 def build_machine_status_card(result: dict) -> Card:
     """Visual card for Podman Machine / CLI health."""
     data = result if isinstance(result, dict) else {}
     healthy = data.get("healthy", data.get("podman_available", True))
-    rows = [
+    rows: list[Any] = [
         Row(
             children=[
                 Metric(label="CLI Status", value="Available" if healthy else "Unavailable"),
@@ -83,11 +85,11 @@ def build_machine_status_card(result: dict) -> Card:
             ]
         )
     ]
-    return Card(
-        children=rows,
-        title="Podman Machine Status",
-        badges=[Badge(label="Healthy" if healthy else "Check Machine")],
-    )
+    card_kwargs = {
+        "title": "Podman Machine Status",
+        "badges": [Badge(label="Healthy" if healthy else "Check Machine")],
+    }
+    return Card(children=rows, **card_kwargs)
 
 
 def build_images_card(result: dict, limit: int = 12) -> Card:
@@ -99,26 +101,26 @@ def build_images_card(result: dict, limit: int = 12) -> Card:
     rows = []
     for item in images[:limit]:
         tags = item.get("repo_tags") or item.get("RepoTags") or []
-        tag_str = tags[0] if tags else item.get("id", "—")[:19]
+        tag_str = tags[0] if tags else item.get("id", "-")[:19]
         size = item.get("size", item.get("Size", 0))
-        size_str = f"{size / 1024 / 1024:.0f}MB" if size > 0 else "—"
+        size_str = f"{size / 1024 / 1024:.0f}MB" if size > 0 else "-"
         rows.append(
             Row(
                 children=[
                     Metric(label="Image", value=str(tag_str)[:48]),
                     Metric(label="Size", value=size_str),
-                    Metric(label="ID", value=str(item.get("id", "—"))[:19]),
+                    Metric(label="ID", value=str(item.get("id", "-"))[:19]),
                 ]
             )
         )
-    return Card(
-        children=rows or [Metric(label="Images", value="0")],
-        title="Podman Images",
-        badges=[
+    card_kwargs = {
+        "title": "Podman Images",
+        "badges": [
             Badge(label=f"{len(images)} total"),
             Badge(label=f"{sum(1 for i in images if i.get('repo_tags', i.get('RepoTags', [])))} tagged"),
         ],
-    )
+    }
+    return Card(children=rows or [Metric(label="Images", value="0")], **card_kwargs)
 
 
 def build_system_info_card(result: dict) -> Card:
@@ -126,16 +128,20 @@ def build_system_info_card(result: dict) -> Card:
     info = result.get("system_info") or result.get("data", {}).get("system_info") or result
     mem = info.get("memory", {}) if isinstance(info, dict) else {}
     cpu = info.get("cpu", {}) if isinstance(info, dict) else {}
-    rows = [
+    rows: list[Any] = [
         Row(
             children=[
-                Metric(label="Podman", value=str(info.get("podman_version", "—"))),
-                Metric(label="CPUs", value=str(cpu.get("cores", info.get("NCPU", "—")))),
+                Metric(label="Podman", value=str(info.get("podman_version", "-"))),
+                Metric(label="CPUs", value=str(cpu.get("cores", info.get("NCPU", "-")))),
                 Metric(
                     label="Memory",
-                    value=str(mem.get("total_formatted", mem.get("total", "—"))),
+                    value=str(mem.get("total_formatted", mem.get("total", "-"))),
                 ),
             ]
         )
     ]
-    return Card(children=rows, title="Podman Engine", badges=[Badge(label="System")])
+    card_kwargs = {
+        "title": "Podman Engine",
+        "badges": [Badge(label="System")],
+    }
+    return Card(children=rows, **card_kwargs)

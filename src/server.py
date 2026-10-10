@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-Podman MCP Server
+Podman MCP Server - HTTP/web bridge entry point.
 
-Main entry point for the Podman MCP server using FastMCP 2.12 tool registration.
+Serves the FastAPI app (REST + web UI mount) for the webapp/launcher path.
+MCP stdio transport lives in podmanmcp.server (``python -m podmanmcp``).
 """
 
-import asyncio
 import logging
 import sys
 import warnings
@@ -15,7 +15,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from podman_mcp.web import setup_webapp
-from podmanmcp.logging_config import LOG_FILE, configure_logging, logger
+from podmanmcp.logging_config import LOG_FILE, configure_logging
 from podmanmcp.mcp_instance import get_mcp
 
 # Initialize MCP + tools before web routes import podmanmcp tool modules
@@ -88,100 +88,5 @@ def _mount_web_ui(app: FastAPI) -> None:
 _mount_web_ui(web_app)
 
 
-def get_all_tools() -> list[callable]:
-    """
-    Discover all FastMCP 2.12+ tools by scanning for @Tool decorated functions.
-
-    Returns:
-        List of tool functions that have been decorated with @Tool
-    """
-    import importlib
-    import pkgutil
-    from inspect import getmembers, isfunction
-    from pathlib import Path
-
-    tools_dir = Path(__file__).parent / "podmanmcp" / "tools"
-    tools = []
-
-    # Skip __pycache__, __init__.py, and models
-    modules = [
-        name
-        for _, name, is_pkg in pkgutil.iter_modules([str(tools_dir)])
-        if not name.startswith("_") and not name == "models" and not name.startswith("test_")
-    ]
-
-    # Import all modules to register the tools
-    for name in modules:
-        try:
-            module = importlib.import_module(f"podmanmcp.tools.{name}")
-            logger.debug(f"Imported module: podmanmcp.tools.{name}")
-
-            # Find all functions with _tool attribute (added by @Tool decorator)
-            for _func_name, func in getmembers(module, isfunction):
-                if hasattr(func, "_tool"):
-                    tools.append(func)
-                    logger.debug(f"Discovered tool: {name}.{func.__name__}")
-
-        except ImportError as e:
-            logger.warning(f"Failed to import module {name}: {e}")
-        except Exception as e:
-            logger.error(f"Error processing module {name}: {e}", exc_info=True)
-
-    logger.info(f"Discovered {len(tools)} tools")
-    return tools
-
-
-async def run_mcp_server():
-    """Run the FastMCP server with all tools."""
-    mcp_instance = get_mcp()
-
-    # Get all tools
-    tools = get_all_tools()
-
-    # Register all tools
-    for tool in tools:
-        mcp_instance.register_tool(tool)
-
-    # Log startup information
-    logger.info(f"Starting Podman MCP server with {len(tools)} tools")
-    logger.info("Registered tools: " + ", ".join([t.__name__ for t in tools]))
-
-    # Configure logging for FastMCP
-    mcp_instance.logger.setLevel("CRITICAL")  # Only show critical errors
-
-    # Run the server with stdio transport and proper logging config
-    logger.info("Starting FastMCP server with stdio transport...")
-    await mcp_instance.run_async(
-        transport="stdio",
-        log_level="CRITICAL",  # Ensure minimal logging
-        json_response=True,  # Set JSON response formatting
-    )
-
-
-def main():
-    """Initialize and run the Podman MCP server with all tools."""
-    try:
-        # Create and run the event loop
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-
-        try:
-            loop.run_until_complete(run_mcp_server())
-        except KeyboardInterrupt:
-            logger.info("Shutting down server...")
-        except Exception as e:
-            logger.error(f"Error in MCP server: {e}", exc_info=True)
-            return 1
-        finally:
-            # Cleanup
-            loop.close()
-
-    except Exception as e:
-        logger.error(f"Error starting Podman MCP server: {e!s}", exc_info=True)
-        return 1
-
-    return 0
-
-
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit("Use the fleet launcher (start.ps1) or uvicorn customization.server:app for HTTP.")

@@ -29,7 +29,7 @@ def log_metrics(name: str, value: float, tags: dict[str, Any] | None = None) -> 
     if not hasattr(log_context, "metrics"):
         log_context.metrics = {}
 
-    metric = {"value": value}
+    metric: dict[str, Any] = {"value": value}
     if tags:
         metric["tags"] = tags
 

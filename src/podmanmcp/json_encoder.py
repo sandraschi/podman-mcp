@@ -9,7 +9,7 @@ import uuid
 from collections.abc import Callable
 from datetime import datetime
 from enum import Enum
-from typing import Any, ClassVar
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +18,7 @@ class PodmanJSONEncoder(json.JSONEncoder):
     """Custom JSON encoder that handles Podman SDK objects and other non-serializable types."""
 
     # Cache for type handlers to improve performance
-    _type_handlers: ClassVar[dict[type, Callable[[Any], Any]]] = {}
+    _type_handlers: dict[type, Callable[[Any], Any]] = {}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -129,32 +129,32 @@ class PodmanJSONEncoder(json.JSONEncoder):
             logger.warning(f"Failed to serialize volume {getattr(volume, 'name', 'unknown')}: {e}")
             return {"name": getattr(volume, "name", "unknown"), "error": str(e)}
 
-    def default(self, obj: Any) -> Any:
+    def default(self, o: Any) -> Any:
         """Convert objects to a JSON-serializable format."""
         # Check for registered type handlers first
         for type_, handler in self._type_handlers.items():
-            if isinstance(obj, type_) or (isinstance(type_, type) and isinstance(obj, type_)):
+            if isinstance(o, type_) or (isinstance(type_, type) and isinstance(o, type_)):
                 try:
-                    return handler(obj)
+                    return handler(o)
                 except Exception as e:
                     logger.debug(f"Handler for {type_.__name__} failed: {e}")
                     break  # Fall through to default handling
 
         # Handle common non-serializable types
-        if hasattr(obj, "__dict__"):
-            return self.clean_dict(obj.__dict__)
-        elif hasattr(obj, "_asdict"):
-            return self.clean_dict(obj._asdict())
-        elif hasattr(obj, "isoformat"):
-            return obj.isoformat()
-        elif hasattr(obj, "__iter__") and not isinstance(obj, (str, bytes, bytearray)):
-            return [self.default(item) for item in obj]
+        if hasattr(o, "__dict__"):
+            return self.clean_dict(o.__dict__)
+        elif hasattr(o, "_asdict"):
+            return self.clean_dict(o._asdict())
+        elif hasattr(o, "isoformat"):
+            return o.isoformat()
+        elif hasattr(o, "__iter__") and not isinstance(o, (str, bytes, bytearray)):
+            return [self.default(item) for item in o]
 
         # Try to get a string representation as a fallback
         try:
-            return str(obj)
+            return str(o)
         except Exception as e:
-            logger.debug(f"Could not serialize object of type {type(obj).__name__}: {e}")
+            logger.debug(f"Could not serialize object of type {type(o).__name__}: {e}")
             return None
 
     def clean_dict(self, d: Any) -> Any:

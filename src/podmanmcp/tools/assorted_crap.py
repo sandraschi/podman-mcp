@@ -16,13 +16,13 @@ logger = logging.getLogger(__name__)
 class SafeJSONEncoder(json.JSONEncoder):
     """A JSON encoder that safely handles non-serializable types."""
 
-    def default(self, obj: Any) -> Any:
+    def default(self, o: Any) -> Any:
         """Convert non-serializable objects to a serializable format."""
         try:
-            return super().default(obj)
+            return super().default(o)
         except (TypeError, OverflowError):
             # Convert non-serializable objects to string representation
-            return str(obj)
+            return str(o)
 
 
 def warn_with_log(
