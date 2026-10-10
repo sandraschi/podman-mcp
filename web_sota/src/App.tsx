@@ -1,18 +1,18 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AppLayout } from '@/components/layout/app-layout';
-import { Dashboard } from '@/pages/dashboard';
-import { Containers } from '@/pages/containers';
-import { Pods } from '@/pages/pods';
-import { Images } from '@/pages/images';
-import { Volumes } from '@/pages/volumes';
-import { Networks } from '@/pages/networks';
-import { Chat } from '@/pages/chat';
-import { Tools } from '@/pages/tools';
-import { Help } from '@/pages/help';
-import { Settings } from '@/pages/settings';
-import { LogsPage } from '@/pages/logs';
-import { Compose } from '@/pages/compose';
-import { MigratePage } from '@/pages/migrate';
+import { Navigate, Route, BrowserRouter as Router, Routes } from "react-router-dom";
+import { AppLayout } from "@/components/layout/app-layout";
+import { Chat } from "@/pages/chat";
+import { Compose } from "@/pages/compose";
+import { Containers } from "@/pages/containers";
+import { Dashboard } from "@/pages/dashboard";
+import { Help } from "@/pages/help";
+import { Images } from "@/pages/images";
+import { LogsPage } from "@/pages/logs";
+import { MigratePage } from "@/pages/migrate";
+import { Networks } from "@/pages/networks";
+import { Pods } from "@/pages/pods";
+import { Settings } from "@/pages/settings";
+import { Tools } from "@/pages/tools";
+import { Volumes } from "@/pages/volumes";
 
 function App() {
   return (

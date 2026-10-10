@@ -53,7 +53,9 @@ export interface LlmProvider {
   reachable: boolean;
 }
 
-const API_BASE = import.meta.env.VITE_API_BASE ?? (import.meta.env.PROD ? "http://127.0.0.1:11113" : "");
+const IN_TAURI =
+  typeof window !== "undefined" && ("__TAURI__" in window || "__TAURI_INTERNALS__" in window);
+const API_BASE = import.meta.env.VITE_API_BASE ?? (IN_TAURI ? "http://127.0.0.1:11113" : "");
 const API = `${API_BASE}/api`;
 const LLM_KEY = "podman-mcp-llm-settings";
 
@@ -124,33 +126,53 @@ export async function clearLogs(): Promise<void> {
   if (!r.ok) throw new Error(`Clear logs failed: ${r.status}`);
 }
 
+// biome-ignore lint/suspicious/noExplicitAny: backend returns version-dependent Podman CLI JSON; shaped at use sites
 export async function getComposeProjects(all = false): Promise<{ projects: any[]; total: number }> {
   const r = await fetch(`${API}/compose/projects?all=${all}`);
   if (!r.ok) throw new Error(`Compose projects failed: ${r.status}`);
   return r.json();
 }
 
+// biome-ignore lint/suspicious/noExplicitAny: backend returns version-dependent Podman CLI JSON; shaped at use sites
 export async function getComposePs(project: string): Promise<{ containers: any[]; total: number }> {
   const r = await fetch(`${API}/compose/ps?project=${encodeURIComponent(project)}`);
   if (!r.ok) throw new Error(`Compose ps failed: ${r.status}`);
   return r.json();
 }
 
-export async function composeUp(project: string, build = false): Promise<{ success: boolean; message?: string }> {
-  const r = await fetch(`${API}/compose/up`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ project, build }) });
+export async function composeUp(
+  project: string,
+  build = false,
+): Promise<{ success: boolean; message?: string }> {
+  const r = await fetch(`${API}/compose/up`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ project, build }),
+  });
   return r.json();
 }
 
-export async function composeDown(project: string, volumes = false): Promise<{ success: boolean; message?: string }> {
-  const r = await fetch(`${API}/compose/down`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ project, volumes }) });
+export async function composeDown(
+  project: string,
+  volumes = false,
+): Promise<{ success: boolean; message?: string }> {
+  const r = await fetch(`${API}/compose/down`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ project, volumes }),
+  });
   return r.json();
 }
 
-export async function getComposeLogs(project: string, tail = 50): Promise<{ success: boolean; output?: string; logs?: string }> {
+export async function getComposeLogs(
+  project: string,
+  tail = 50,
+): Promise<{ success: boolean; output?: string; logs?: string }> {
   const r = await fetch(`${API}/compose/logs?project=${encodeURIComponent(project)}&tail=${tail}`);
   return r.json();
 }
 
+// biome-ignore lint/suspicious/noExplicitAny: backend returns version-dependent Podman CLI JSON; shaped at use sites
 export async function analyzeComposeFile(filePath: string): Promise<any> {
   const r = await fetch(`${API}/compose/analyze`, {
     method: "POST",
@@ -160,7 +182,9 @@ export async function analyzeComposeFile(filePath: string): Promise<any> {
   return r.json();
 }
 
-export async function getComposeConfig(project: string): Promise<{ success: boolean; config?: string }> {
+export async function getComposeConfig(
+  project: string,
+): Promise<{ success: boolean; config?: string }> {
   const r = await fetch(`${API}/compose/config?project=${encodeURIComponent(project)}`);
   return r.json();
 }
