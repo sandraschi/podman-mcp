@@ -158,6 +158,24 @@ Operations: `container_analyze`, `system_overview`, `recommendations`
 | `system_overview` | — | Aggregate counts, restart loops, disk usage |
 | `recommendations` | — | Prioritized fix suggestions (high/medium/low) |
 
+### podman_shutdown
+`fleet_surface.py` — Orderly server shutdown (confirm-gated).
+
+| Op | Parameters | Description |
+|----|-----------|-------------|
+| (confirm=False) | — | Returns "pass confirm=true" hint, no exit |
+| (confirm=True) | — | Replies 200, exits the process ~500 ms later |
+
+### Prefab cards (`fleet_surface.py`, all `@mcp.tool(app=True)`)
+
+`podman_containers_card` (all_states), `podman_pods_card`,
+`podman_machine_status_card`, `podman_images_card` (limit), `podman_system_info_card`.
+
+### Prompts and resources (`fleet_surface.py`)
+
+Prompts: `podman_deploy_stack` (stack_name), `podman_machine_health_check`.
+Resources: `resource://podman-mcp/skills`, `resource://podman-mcp/capabilities`.
+
 ## REST API Endpoints
 
 | Method | Path | Purpose |
@@ -185,6 +203,13 @@ Operations: `container_analyze`, `system_overview`, `recommendations`
 | GET | `/api/logs/export` | Log export (JSON/CSV) |
 | DELETE | `/api/logs` | Clear logs |
 | GET | `/api/v1/diagnostics` | CUA smoke test diagnostics |
+| GET | `/api/skills` | Prompt + tool names for skill-first chat |
+| GET | `/api/status` | Running status: uptime, tool_count |
+| GET | `/api/llm/discover` | Local provider probe (alias of providers) |
+| GET | `/api/llm/models` | Model list per provider |
+| GET | `/api/llm/onboarding` | Starter facts + recommended path |
+| POST | `/api/llm/chat` | Chat completion (alias of `/api/chat`) |
+| POST | `/api/shutdown` | Orderly exit (~500 ms, for launcher restarts) |
 | POST | `/api/podman/recover` | Restart Podman machine |
 | GET | `/api/capabilities` | Page flags, tool_count, LLM providers |
 | GET | `/api/tools` | Tool names |

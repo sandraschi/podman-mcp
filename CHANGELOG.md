@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased (assfix 2026-10-10)
+
+- **Gates green**: `pyright src/` 0 errors (was 435), `ruff check`/`format` clean with S110/S112 + T20 enforced, pytest 21 passed, `tsc` clean, `biome ci` clean (config migrated 1.9 → 2.5), coverage floor `--cov-fail-under=20`.
+- **Critical entrypoint fix**: `python -m podmanmcp` (the MCPB stdio entry) called `asyncio.run()` on a sync runner → instant exit 1; now calls `run_server()` directly. Proven live: stdio initialize + tools/list returns 15/15 tools.
+- **Crash-path fixes**: structlog-style `error=` kwargs on stdlib loggers (TypeError on every JSON-parse failure) in containers/images/pods; 18 silent `try/except: pass` JSON fallbacks now log at debug.
+- **Shutdown surface**: new `podman_shutdown` MCP tool (confirm-gated) + `POST /api/shutdown`; proven live (backend exits ~500 ms after POST).
+- **REST discovery**: added `GET /api/skills`, `GET /api/status`, `GET /api/llm/discover|models|onboarding`, `POST /api/llm/chat` (alias); all probed 200 live.
+- **Frontend**: same-origin API base with Tauri gate (no more hardcoded `127.0.0.1:11113` outside Tauri); Chat gains Operator + Custom personalities; 5 `text-xs`/contrast and a11y/keys/hooks-deps findings fixed.
+- **Hygiene**: removed dead `workflow_intel/` + `podmanmcp/core/` (zero importers, 280 type errors), moved stray `src/test_*.py` to `scripts/legacy/`, sampling config/handler relocated into `podmanmcp/` so the MCPB bundle is self-contained (clean-room verified: 15/15 tools from bundle files only).
+- **CI**: new `.github/workflows/ci.yml` (ruff, format, pyright, pytest, node 22, npm ci, biome, tsc); session channels added (Claude Code, Cursor, Windsurf, Copilot, OpenCode, Antigravity).
+- **Packaging**: fleet `scripts/mcpb-pack.ps1` shim + `mcpb/manifest.json`; `dist/podman-mcp-v3.5.0.mcpb` (+ stable + `install.ps1`) built and verified.
+
 ## v3.5.1 — 2026-09-13
 
 - **Dashboard**: fix false "Podman is not installed" when the CLI works but the engine/machine is down (empty `message` + misleading fallback text).

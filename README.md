@@ -29,7 +29,7 @@ While Docker relies on a monolithic background service (the Docker Daemon, `dock
 
 | Method | Command |
 |--------|---------|
-| **Claude Desktop** | `just mcpb-pack` → drag `.mcpb` onto Claude |
+| **Claude Desktop** | `just mcpb-pack` → drag `.mcpb` onto Claude (or grab `podman-mcp.mcpb` + `install.ps1` from the [latest release](https://github.com/sandraschi/podman-mcp/releases/latest)) |
 | **Windows (NSIS)** | `just build-native` → run `*-setup.exe` |
 | **Dev (any OS)** | `uv sync && .\start.ps1` → `localhost:11112` |
 
