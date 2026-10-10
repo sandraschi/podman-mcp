@@ -107,8 +107,9 @@ export function Chat() {
   );
   const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set());
   const [chatSkills, setChatSkills] = useState<string[]>([]);
+  const [skillPreprompt, setSkillPreprompt] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
-  const persona =
+  const personaBase =
     personality === "custom"
       ? {
           id: "custom",
@@ -116,6 +117,11 @@ export function Chat() {
           prompt: customPrompt || "You are a helpful Podman assistant.",
         }
       : (PERSONALITIES.find((p) => p.id === personality) ?? PERSONALITIES[0]);
+  // Skill-first composition: server skill preprompt + selected personality.
+  const persona = {
+    ...personaBase,
+    prompt: [skillPreprompt, personaBase.prompt].filter(Boolean).join("\n\n"),
+  };
 
   useEffect(() => {
     localStorage.setItem("podman-chat", JSON.stringify(messages.slice(-100)));
@@ -138,7 +144,10 @@ export function Chat() {
         const res = await fetch(`${API_BASE}/api/skills`);
         if (!res.ok || cancelled) return;
         const data = await res.json();
-        if (!cancelled) setChatSkills(data.skills ?? []);
+        if (!cancelled) {
+          setChatSkills(data.skills ?? []);
+          setSkillPreprompt(data.system_preprompt ?? "");
+        }
       } catch {
         /* skills stay empty: chat works without them */
       }
@@ -283,20 +292,24 @@ export function Chat() {
       setStreaming(false);
       setAbort(null);
     }
-  }, [input, streaming, messages, provider, model, endpoint, persona, toolMode]);
+  }, [input, streaming, messages, provider, model, endpoint, persona.prompt, toolMode]);
 
   const stop = () => {
     abort?.abort();
     setStreaming(false);
   };
 
-  const exportChat = (fmt: "md" | "json") => {
+  const exportChat = (fmt: "md" | "json" | "txt") => {
     const c =
       fmt === "json"
         ? JSON.stringify(messages, null, 2)
-        : messages
-            .map((m) => `### ${m.role === "user" ? "User" : persona.name}\n${m.content}\n`)
-            .join("\n");
+        : fmt === "txt"
+          ? messages
+              .map((m) => `${m.role === "user" ? "User" : persona.name}: ${m.content}`)
+              .join("\n")
+          : messages
+              .map((m) => `### ${m.role === "user" ? "User" : persona.name}\n${m.content}\n`)
+              .join("\n");
     const b = new Blob([c], { type: "text/plain" });
     const u = URL.createObjectURL(b);
     const a = document.createElement("a");
@@ -370,9 +383,10 @@ export function Chat() {
           <button
             type="button"
             data-testid="chat-export"
-            onClick={() => exportChat("md")}
-            className="p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-slate-800"
-            title="Export MD"
+            onClick={() => exportChat("txt")}
+            disabled={messages.length === 0}
+            className="p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 disabled:opacity-40"
+            title="Export TXT"
           >
             <Download className="h-4 w-4" />
           </button>
@@ -383,7 +397,8 @@ export function Chat() {
               setMessages([]);
               localStorage.removeItem("podman-chat");
             }}
-            className="text-xs text-slate-400 hover:text-white px-2 py-1 rounded-md hover:bg-slate-800"
+            disabled={messages.length === 0}
+            className="text-xs text-slate-400 hover:text-white px-2 py-1 rounded-md hover:bg-slate-800 disabled:opacity-40"
           >
             Clear
           </button>
@@ -411,6 +426,7 @@ export function Chat() {
             <div className="relative">
               <select
                 id="chat-provider"
+                data-testid="llm-provider-select"
                 value={provider}
                 onChange={(e) => onProviderChange(e.target.value)}
                 className="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-slate-200 text-xs min-w-[9rem] appearance-none pr-6"
@@ -439,6 +455,7 @@ export function Chat() {
               </label>
               <select
                 id="chat-model"
+                data-testid="llm-model-select"
                 value={model}
                 onChange={(e) => onModelChange(e.target.value)}
                 className="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-slate-200 text-xs min-w-[9rem]"
@@ -478,6 +495,12 @@ export function Chat() {
               className="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-slate-200 text-xs w-44 font-mono"
             />
           </div>
+          {gpuDetected && providers.length === 0 && (
+            <p className="text-xs text-amber-300/80 w-full">
+              GPU detected but no local LLM is running — start Ollama (`ollama serve`) or LM Studio
+              to enable AI chat.
+            </p>
+          )}
           <button
             type="button"
             onClick={refreshProviders}
