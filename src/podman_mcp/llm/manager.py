@@ -42,6 +42,7 @@ class LLMManager:
 
         ollama_url = os.getenv("OLLAMA_BASE_URL", "http://127.0.0.1:11434").rstrip("/")
         lm_url = os.getenv("LMSTUDIO_BASE_URL", "http://127.0.0.1:1234").rstrip("/")
+        vllm_url = os.getenv("VLLM_BASE_URL", "http://127.0.0.1:8000").rstrip("/")
         timeout = httpx.Timeout(2.0)
         async with httpx.AsyncClient(timeout=timeout) as client:
             if "ollama" not in self.providers:
@@ -62,6 +63,15 @@ class LLMManager:
                         self.register("lmstudio", lm_url, models=models)
                 except Exception:
                     logger.debug("LLM glom: LM Studio not reachable", exc_info=True)
+            if "vllm" not in self.providers:
+                try:
+                    response = await client.get(f"{vllm_url}/v1/models")
+                    if response.status_code == 200:
+                        payload = response.json()
+                        models = [m.get("id", "") for m in payload.get("data", []) if m.get("id")]
+                        self.register("vllm", vllm_url, models=models)
+                except Exception:
+                    logger.debug("LLM glom: vLLM not reachable", exc_info=True)
 
 
 _llm_manager: LLMManager | None = None

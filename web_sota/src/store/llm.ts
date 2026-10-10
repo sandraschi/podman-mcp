@@ -8,7 +8,15 @@ export const DEFAULT_ENDPOINTS: Record<string, string> = {
 
 function readKey(key: string, fallback: string): string {
   try {
-    return localStorage.getItem(key) ?? fallback;
+    // Fleet-standard keys first (llm_provider/llm_model shared across fleet
+    // webapps), then this app's legacy podman-chat-* keys (one-time migration).
+    const legacy =
+      key === "llm_provider"
+        ? "podman-chat-provider"
+        : key === "llm_model"
+          ? "podman-chat-model"
+          : null;
+    return localStorage.getItem(key) ?? (legacy ? localStorage.getItem(legacy) : null) ?? fallback;
   } catch {
     return fallback;
   }
@@ -43,8 +51,8 @@ interface LlmState {
 
 export const useLlmStore = create<LlmState>()((set, get) => ({
   providers: [],
-  provider: readKey("podman-chat-provider", "ollama"),
-  model: readKey("podman-chat-model", "llama3.2"),
+  provider: readKey("llm_provider", "ollama"),
+  model: readKey("llm_model", "llama3.2"),
   endpoint: readKey("podman-chat-endpoint", "http://127.0.0.1:11434"),
   personality: readKey("podman-chat-persona", "expert"),
   customPrompt: readKey("podman-chat-custom-prompt", ""),
@@ -52,14 +60,14 @@ export const useLlmStore = create<LlmState>()((set, get) => ({
   gpuDetected: false,
   setProvider: (provider) => {
     set({ provider });
-    writeKey("podman-chat-provider", provider);
+    writeKey("llm_provider", provider);
     const match = get().providers.find((p) => p.type === provider);
     if (match) {
       set({ endpoint: match.base_url });
       writeKey("podman-chat-endpoint", match.base_url);
       if (match.models[0]) {
         set({ model: match.models[0] });
-        writeKey("podman-chat-model", match.models[0]);
+        writeKey("llm_model", match.models[0]);
       }
     } else {
       const fallback = DEFAULT_ENDPOINTS[provider] ?? DEFAULT_ENDPOINTS.ollama;
@@ -69,7 +77,7 @@ export const useLlmStore = create<LlmState>()((set, get) => ({
   },
   setModel: (model) => {
     set({ model });
-    writeKey("podman-chat-model", model);
+    writeKey("llm_model", model);
   },
   setEndpoint: (endpoint) => {
     set({ endpoint });
@@ -97,7 +105,7 @@ export const useLlmStore = create<LlmState>()((set, get) => ({
           if (!model || !match.models.includes(model)) {
             const next = match.models[0] ?? model;
             set({ model: next });
-            writeKey("podman-chat-model", next);
+            writeKey("llm_model", next);
           }
         }
       }
@@ -120,7 +128,7 @@ export const useLlmStore = create<LlmState>()((set, get) => ({
           writeKey("podman-chat-endpoint", match.base_url);
           if (match.models[0]) {
             set({ model: match.models[0] });
-            writeKey("podman-chat-model", match.models[0]);
+            writeKey("llm_model", match.models[0]);
           }
         }
       }

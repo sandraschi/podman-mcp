@@ -59,3 +59,28 @@ Resources: `resource://podman-mcp/skills`, `resource://podman-mcp/capabilities`.
 - `create` needs `image`; most other ops need `container_id`.
 - Volume backup paths are Windows paths (`D:/backups/...`) - the server
   translates them for the machine automatically.
+
+## Docker vs Podman (when it matters)
+
+Podman is a daemon-less, OCI-compatible drop-in for most Docker workflows -
+same CLI verbs, same image registries (Hub, Quay, ghcr), same compose file
+shape. Differences that change tool choice:
+
+| Topic | Docker / Docker Desktop | Podman / Podman Desktop |
+|-------|------------------------|-------------------------|
+| Daemon | Central `dockerd`; when it wedges, everything hangs until restart | Daemon-less; containers are child processes. No single daemon to wedge (a stuck machine VM is recovered with `machine stop/start`) |
+| Privileges | Daemon runs as root (rootless mode is opt-in) | Rootless by default; this server auto-detects it |
+| Pods | No native concept (compose is the grouping) | First-class pods (shared net namespace, K8s-like) - use `manage_pods` |
+| Kubernetes | Desktop ships a CRI-translated single node | `podman generate kube` / `play kube` speak native K8s YAML; no translation layer |
+| Compose | Full spec incl. `deploy:`, `secrets:`, `configs:`, `service_healthy` | `podman-compose` lags exactly there - run `compatibility_check` first |
+| Builds | BuildKit (cache mounts, advanced flags) | `podman build` covers the common set; exotic BuildKit syntax may differ |
+| Windows containers | Supported (LCOW/Windows) | Linux containers only - needs Docker Desktop instead |
+| Registries/catalog | Docker Hub, Scout, Extensions marketplace | Any OCI registry works identically; no Hub lock-in for pulls |
+| AI addons | Desktop AI assistant, Gordon | This server's chat + agentic tools against local Ollama/LM Studio cover the same ground with no account |
+| Testcontainers | Assumes a Docker socket | Works against the Podman socket in most cases - verify per suite |
+| Licensing/cost | Desktop needs a paid subscription for larger companies | Podman + Podman Desktop are free and open source |
+
+Rule of thumb: default to Podman (cheaper to run, easier to recover,
+better K8s story); reach for Docker Desktop only for Windows containers,
+exotic BuildKit builds, or Testcontainers suites that prove Podman-hostile.
+`manage_migrate compatibility_check` answers the compose question per stack.

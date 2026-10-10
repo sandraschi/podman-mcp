@@ -157,7 +157,7 @@ export function Settings() {
               <Select
                 value={provider}
                 onValueChange={onProviderChange}
-                data-testid="settings-provider"
+                data-testid="llm-provider-select"
               >
                 <SelectTrigger className="bg-slate-900 border-slate-800 text-slate-100">
                   <SelectValue placeholder="Select provider" />
@@ -182,6 +182,7 @@ export function Settings() {
                 value={model || undefined}
                 onValueChange={setModel}
                 disabled={modelOptions.length === 0}
+                data-testid="llm-model-select"
               >
                 <SelectTrigger className="bg-slate-900 border-slate-800 text-slate-100">
                   <SelectValue placeholder={loadingModels ? "Loading models…" : "Select a model"} />

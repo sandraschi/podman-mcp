@@ -139,7 +139,18 @@ def setup_webapp(app: FastAPI, mcp_app: FastMCP):
     async def list_skills():
         prompts = await mcp_app.list_prompts()
         tools = await mcp_app.list_tools()
-        return {"skills": [p.name for p in prompts], "tools": [t.name for t in tools]}
+        skill_names = [p.name for p in prompts]
+        descriptions = []
+        for p in prompts:
+            doc = (p.description or "").strip().splitlines()
+            descriptions.append(f"- {p.name}: {doc[0] if doc else 'prompt template'}")
+        preprompt = (
+            "Available Podman assistant skills (prefer the matching tool or prompt template "
+            "when the user asks for these tasks):\n" + "\n".join(descriptions)
+            if descriptions
+            else ""
+        )
+        return {"skills": skill_names, "tools": [t.name for t in tools], "system_preprompt": preprompt}
 
     @app.get("/api/status")
     async def status():
