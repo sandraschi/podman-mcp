@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased (assfix 2026-10-10)
+## v3.5.2 — 2026-10-10
 
 - **Gates green**: `pyright src/` 0 errors (was 435), `ruff check`/`format` clean with S110/S112 + T20 enforced, pytest 21 passed, `tsc` clean, `biome ci` clean (config migrated 1.9 → 2.5), coverage floor `--cov-fail-under=20`.
 - **Critical entrypoint fix**: `python -m podmanmcp` (the MCPB stdio entry) called `asyncio.run()` on a sync runner → instant exit 1; now calls `run_server()` directly. Proven live: stdio initialize + tools/list returns 15/15 tools.
@@ -10,7 +10,8 @@
 - **Frontend**: same-origin API base with Tauri gate (no more hardcoded `127.0.0.1:11113` outside Tauri); Chat gains Operator + Custom personalities; 5 `text-xs`/contrast and a11y/keys/hooks-deps findings fixed.
 - **Hygiene**: removed dead `workflow_intel/` + `podmanmcp/core/` (zero importers, 280 type errors), moved stray `src/test_*.py` to `scripts/legacy/`, sampling config/handler relocated into `podmanmcp/` so the MCPB bundle is self-contained (clean-room verified: 15/15 tools from bundle files only).
 - **CI**: new `.github/workflows/ci.yml` (ruff, format, pyright, pytest, node 22, npm ci, biome, tsc); session channels added (Claude Code, Cursor, Windsurf, Copilot, OpenCode, Antigravity).
-- **Packaging**: fleet `scripts/mcpb-pack.ps1` shim + `mcpb/manifest.json`; `dist/podman-mcp-v3.5.0.mcpb` (+ stable + `install.ps1`) built and verified.
+- **Packaging**: fleet `scripts/mcpb-pack.ps1` shim + `mcpb/manifest.json`; `dist/podman-mcp-v3.5.2.mcpb` (+ stable + `install.ps1`) built and clean-room verified (15/15 tools from bundle files only).
+- **Deferred round**: `GET /api/events` (engine event feed with graceful engine-down) + unit tests; new **Inbox** (event stream, auto-refresh, engine banner) and **Skills** (prompt/tool catalog with copy) pages + nav; `skills/podman-mcp/SKILL.md`; Zustand `store/llm.ts` (providers, model, personality, GPU probe) with Chat migrated; Chat skill chips, 6 example prompts, `chat-controls`/`chat-messages`/`chat-llm-status` testids; every page now carries 3+ `data-testid`s; npm-over-bun decision documented in `docs/DEVELOPMENT.md`.
 
 ## v3.5.1 — 2026-09-13
 

@@ -1,6 +1,6 @@
 # podman-mcp — Full LLM Reference
 
-**Version**: 3.5.0 | **Ports**: 11112 (frontend) / 11113 (backend + MCP /mcp)
+**Version**: 3.5.2 | **Ports**: 11112 (frontend) / 11113 (backend + MCP /mcp)
 **Stack**: FastMCP 3.5 · Python 3.12+ · React 19 · Vite · Tailwind · Zustand
 
 ## Architecture
@@ -210,6 +210,7 @@ Resources: `resource://podman-mcp/skills`, `resource://podman-mcp/capabilities`.
 | GET | `/api/llm/onboarding` | Starter facts + recommended path |
 | POST | `/api/llm/chat` | Chat completion (alias of `/api/chat`) |
 | POST | `/api/shutdown` | Orderly exit (~500 ms, for launcher restarts) |
+| GET | `/api/events?since=24h&limit=200` | Engine event inbox (newest-first; `engine: down` + message when unreachable) |
 | POST | `/api/podman/recover` | Restart Podman machine |
 | GET | `/api/capabilities` | Page flags, tool_count, LLM providers |
 | GET | `/api/tools` | Tool names |

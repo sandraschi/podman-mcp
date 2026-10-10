@@ -31,6 +31,39 @@ SortParam = Literal["asc", "desc"]
 logger = logging.getLogger("podmanmcp")
 
 
+def parse_podman_events(output: str, limit: int = 200) -> list[dict]:
+    """Parse `podman events --format json` newline-delimited output.
+
+    Each line is one event: {"Action", "Type", "Actor": {"Attributes": {...}}, "time"}.
+    Blank lines and malformed JSON are skipped. Returns newest-first, capped at limit.
+    """
+    events: list[dict] = []
+    for line in output.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            raw = json.loads(line)
+        except Exception as exc:
+            logger.debug("Skipping malformed event line: %s", exc)
+            continue
+        if not isinstance(raw, dict):
+            continue
+        actor = raw.get("Actor") or {}
+        attrs = actor.get("Attributes") or {} if isinstance(actor, dict) else {}
+        events.append(
+            {
+                "action": raw.get("Action", "?"),
+                "type": raw.get("Type", "?"),
+                "name": attrs.get("name", ""),
+                "image": attrs.get("image", ""),
+                "time": raw.get("time", 0),
+            }
+        )
+    events.sort(key=lambda e: e["time"], reverse=True)
+    return events[:limit]
+
+
 def setup_webapp(app: FastAPI, mcp_app: FastMCP):
     """Setup standard SOTA web endpoints for Podman-MCP."""
     import time
@@ -117,6 +150,24 @@ def setup_webapp(app: FastAPI, mcp_app: FastMCP):
             "uptime_seconds": time.time() - _start_time,
             "tool_count": len(tools),
         }
+
+    @app.get("/api/events")
+    async def podman_events(since: str = Query("24h"), limit: int = Query(200)):
+        from podmanmcp.podman_context import run_podman_command
+
+        res = await run_podman_command(["events", "--format", "json", "--since", since, "--stream=false"], timeout=30.0)
+        if not res["success"]:
+            stderr = (res.get("stderr") or "").strip().splitlines()
+            return {
+                "success": False,
+                "engine": "down",
+                "events": [],
+                "count": 0,
+                "message": stderr[-1] if stderr else "Podman engine unreachable",
+            }
+        events = parse_podman_events(res["stdout"], limit=limit)
+        log_activity("tool_call", f"podman events (web API): {len(events)} in scope")
+        return {"success": True, "engine": "up", "events": events, "count": len(events)}
 
     @app.get("/api/logs")
     async def logs_query(
