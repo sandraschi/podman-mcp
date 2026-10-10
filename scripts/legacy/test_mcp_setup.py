@@ -2,6 +2,7 @@
 Test script to verify FastMCP setup and tool registration.
 """
 
+import asyncio
 import sys
 from pathlib import Path
 
@@ -23,13 +24,13 @@ def test_mcp_setup():
         # Get the MCP instance
         mcp = get_mcp()
 
-        # Get registered tools
-        tools = mcp.get_tools()
+        # Get registered tools (FastMCP 3.x API, async)
+        tools = asyncio.run(mcp.list_tools())
 
         # Print tool information
         logger.info(f"Found {len(tools)} registered tools:")
         for tool in tools:
-            logger.info(f"- {tool['name']}: {tool.get('description', 'No description')}")
+            logger.info(f"- {tool.name}: {tool.description or 'No description'}")
 
         return True
     except Exception as e:
