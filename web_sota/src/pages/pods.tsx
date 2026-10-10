@@ -52,7 +52,7 @@ export function Pods() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="pods-page">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold tracking-tight text-white">Pods</h2>
@@ -60,6 +60,7 @@ export function Pods() {
         </div>
         <button
           type="button"
+          data-testid="pods-refresh"
           onClick={fetchPods}
           disabled={loading}
           className="rounded-md bg-slate-800 px-3 py-2 text-sm font-medium text-slate-200 hover:bg-slate-700 disabled:opacity-50 transition-colors"
@@ -87,7 +88,7 @@ export function Pods() {
               No pods found. Create a pod using 'podman pod create' or chat.
             </p>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto" data-testid="pods-table">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-slate-800 text-left text-slate-400">

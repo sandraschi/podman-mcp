@@ -46,7 +46,7 @@ export function Containers() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="containers-page">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold tracking-tight text-white">Containers</h2>
@@ -54,6 +54,7 @@ export function Containers() {
         </div>
         <button
           type="button"
+          data-testid="containers-refresh"
           onClick={fetchContainers}
           disabled={loading}
           className="rounded-md bg-slate-800 px-3 py-2 text-sm font-medium text-slate-200 hover:bg-slate-700 disabled:opacity-50"
@@ -79,7 +80,7 @@ export function Containers() {
           {containers.length === 0 && !error ? (
             <p className="text-slate-500 py-8 text-center">No containers found.</p>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto" data-testid="containers-table">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-slate-800 text-left text-slate-400">

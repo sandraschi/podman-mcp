@@ -90,7 +90,7 @@ export function Volumes() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="volumes-page">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold tracking-tight text-white">Volumes</h2>
@@ -98,6 +98,7 @@ export function Volumes() {
         </div>
         <button
           type="button"
+          data-testid="volumes-refresh"
           onClick={fetchVolumes}
           disabled={loading}
           className="rounded-md bg-slate-800 px-3 py-2 text-sm font-medium text-slate-200 hover:bg-slate-700 disabled:opacity-50 transition-colors"
@@ -132,6 +133,7 @@ export function Volumes() {
             />
             <button
               type="submit"
+              data-testid="volumes-create"
               disabled={submitting || !newVolumeName.trim()}
               className="flex items-center gap-1 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50 transition-colors"
             >

@@ -239,6 +239,7 @@ export function Compose() {
         <div className="flex items-center gap-2">
           <button
             type="button"
+            data-testid="compose-refresh"
             onClick={() => fetchProjects()}
             className="p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-slate-800"
           >
@@ -271,6 +272,7 @@ export function Compose() {
             onChange={handleFileInput}
           />
           <input
+            data-testid="compose-analyze-path"
             value={analysisPath}
             onChange={(e) => setAnalysisPath(e.target.value)}
             placeholder="Path to podman-compose.yml (or pick above)"
@@ -278,6 +280,7 @@ export function Compose() {
           />
           <button
             type="button"
+            data-testid="compose-analyze"
             onClick={analyzePath}
             disabled={analysisLoading || !analysisPath.trim()}
             className="px-3 py-1.5 text-xs rounded-md bg-slate-800 text-slate-300 hover:bg-slate-700 disabled:opacity-40 border border-slate-700"
