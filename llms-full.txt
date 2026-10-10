@@ -1,6 +1,6 @@
 # podman-mcp — Full LLM Reference
 
-**Version**: 3.5.2 | **Ports**: 11112 (frontend) / 11113 (backend + MCP /mcp)
+**Version**: 3.5.3 | **Ports**: 11112 (frontend) / 11113 (backend + MCP /mcp)
 **Stack**: FastMCP 3.5 · Python 3.12+ · React 19 · Vite · Tailwind · Zustand
 
 ## Architecture

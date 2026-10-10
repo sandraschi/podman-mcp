@@ -1,5 +1,10 @@
 # Changelog
 
+## v3.5.3 — 2026-10-10
+
+- **Chat conformance (P3/P5)**: skill-first composition (`GET /api/skills` returns `system_preprompt`, prepended to the personality prompt); export switched to `.txt` + disabled-when-empty; clear disabled-when-empty; `llm-provider-select`/`llm-model-select` testids; fleet `llms-full.txt` keys with one-time migration; vLLM `:8000` probe; GPU opportunity hint.
+- **Skill**: Docker-vs-Podman comparison table (daemon, rootless, pods, kube, compose gaps, builds, Windows containers, registries, AI addons, Testcontainers, licensing).
+
 ## v3.5.2 — 2026-10-10
 
 - **Gates green**: `pyright src/` 0 errors (was 435), `ruff check`/`format` clean with S110/S112 + T20 enforced, pytest 21 passed, `tsc` clean, `biome ci` clean (config migrated 1.9 → 2.5), coverage floor `--cov-fail-under=20`.
