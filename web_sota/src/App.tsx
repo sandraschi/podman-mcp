@@ -6,11 +6,13 @@ import { Containers } from "@/pages/containers";
 import { Dashboard } from "@/pages/dashboard";
 import { Help } from "@/pages/help";
 import { Images } from "@/pages/images";
+import { Inbox } from "@/pages/inbox";
 import { LogsPage } from "@/pages/logs";
 import { MigratePage } from "@/pages/migrate";
 import { Networks } from "@/pages/networks";
 import { Pods } from "@/pages/pods";
 import { Settings } from "@/pages/settings";
+import { Skills } from "@/pages/skills";
 import { Tools } from "@/pages/tools";
 import { Volumes } from "@/pages/volumes";
 
@@ -27,6 +29,8 @@ function App() {
           <Route path="/networks" element={<Networks />} />
           <Route path="/chat" element={<Chat />} />
           <Route path="/tools" element={<Tools />} />
+          <Route path="/inbox" element={<Inbox />} />
+          <Route path="/skills" element={<Skills />} />
           <Route path="/help" element={<Help />} />
           <Route path="/logs" element={<LogsPage />} />
           <Route path="/compose" element={<Compose />} />
