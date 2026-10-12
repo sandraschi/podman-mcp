@@ -1,3 +1,4 @@
+import asyncio
 import json
 import logging
 import os
@@ -439,7 +440,7 @@ def setup_webapp(app: FastAPI, mcp_app: FastMCP):
             )
 
             refresh_podman_connection()
-            ctx = get_podman_status()
+            ctx = await asyncio.to_thread(get_podman_status)
 
             containers_res = await manage_containers(operation="list")
             images_res = await manage_images(operation="list")

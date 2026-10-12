@@ -5,6 +5,7 @@ This module provides functionality to interact with Grafana instances running in
 including setup instructions, dashboard management, and monitoring.
 """
 
+import asyncio
 import logging
 import os
 from typing import Any
@@ -147,7 +148,7 @@ class GrafanaManager:
                 auth = (self.DEFAULT_USER, self.DEFAULT_PASSWORD)
 
             url = urljoin(host, f"/api/dashboards/uid/{dashboard_uid}")
-            response = requests.get(url, auth=auth, timeout=30)
+            response = await asyncio.to_thread(requests.get, url, auth=auth, timeout=30)
             response.raise_for_status()
 
             return {"success": True, "dashboard": response.json()}

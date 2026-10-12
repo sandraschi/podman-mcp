@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 from typing import Annotated, Any, Literal
@@ -89,7 +90,7 @@ async def manage_system(
     try:
         # 1. Read-only operations
         if operation == "status":
-            ctx_status = get_podman_status()
+            ctx_status = await asyncio.to_thread(get_podman_status)
             res = await run_podman_command(["machine", "list", "--format", "json"])
             machines = []
             if res["success"] and res["stdout"].strip():
